@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-nepal-blue: #0A1C40;
+  --color-nepal-blue-light: #1A346C;
+  --color-nepal-crimson: #DC143C;
+  --color-nepal-crimson-light: #F42E56;
+  --color-nepal-gold: #E2B13C;
+  --color-nepal-gold-light: #F1C40F;
+  --color-nepal-slate: #F8F9FC;
+  --color-nepal-dark: #071126;
+  
+  --shadow-premium: 0 10px 30px -10px rgba(10, 28, 64, 0.08);
+  --shadow-premium-hover: 0 20px 40px -15px rgba(220, 20, 60, 0.12);
+  --shadow-dark-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+  }
+  
+  body {
+    @apply transition-colors duration-300;
+  }
+}
+
+/* Custom glassmorphism and subtle gradient backdrops */
+.glass-panel {
+  @apply bg-white/85 dark:bg-nepal-dark/85 backdrop-blur-md border border-slate-100 dark:border-slate-800/50;
+}
+
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-nepal-blue via-nepal-crimson to-nepal-gold dark:from-white dark:via-nepal-crimson-light dark:to-nepal-gold;
+}
+
