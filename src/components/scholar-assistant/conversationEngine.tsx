@@ -137,13 +137,13 @@ export const JOURNEYS: JourneyDefinition[] = [
   {
     id: "improve-documents",
     label: "Improve My Documents",
-    keywords: /\bsop\b|\bcv\b|resume|\blor\b|document|essay|recommendation letter|statement of purpose/i,
+    keywords: /\bsop\b|\bcv\b|resume|\blor\b|document|essay|recommendation letter|statement of purpose|motivation letter/i,
     steps: [
       {
         id: "doc-type",
         contextKey: "docType",
         prompt: () => "Let's strengthen your application. Which document would you like to work on?",
-        quickReplies: ["Statement of Purpose (SOP)", "CV / Resume", "Letter of Recommendation (LOR)"],
+        quickReplies: ["Statement of Purpose (SOP)", "CV / Resume", "Letter of Recommendation (LOR)", "Motivation Letter"],
       },
       {
         id: "doc-stage",
@@ -174,7 +174,7 @@ export const JOURNEYS: JourneyDefinition[] = [
   },
 ];
 
-export const GOAL_QUICK_REPLIES = JOURNEYS.map((j) => j.label);
+export const GOAL_QUICK_REPLIES = [...JOURNEYS.map((j) => j.label), "Recommend Trusted Education Consultancy"];
 
 // ---------------------------------------------------------------------------
 // Engine — routing helpers (UNCHANGED by ES-005G)
@@ -336,7 +336,7 @@ const KIPLAN_CONTACT_LINKS: ContactLink[] = [
 const KIPLAN_CONTACT_TEXT =
   "Of course — I'll connect you with a real KIPLAN team member. You can reach us directly:\n\n" +
   "KIPLAN\nCivil Trade Centre (CTC) Mall\nSundhara, Kathmandu 44600, Nepal\n\n" +
-  "Office: +977 1 5312040\nMobile (WhatsApp): +977 9849530970\nEmail: ipkiplan@gmail.com";
+  "Office: +977 1 5312040\nMobile (WhatsApp/Viber): +977 9849530970\nEmail: ipkiplan@gmail.com";
 
 // ---------------------------------------------------------------------------
 // ES-006A.1 — Document-completion intent recognition
@@ -375,12 +375,20 @@ function detectDocumentReadyIntent(input: string): { docType: string } | null {
 
 // The CV Builder (ES-006A) is a real, existing feature, so it's
 // honestly referenced by name for CV readiness specifically. SOP/LOR/
-// Motivation Letter have no builder yet (Version 1.1+ roadmap) — their
-// response never implies one exists, per the Knowledge Boundary Rule
-// this engine has held to since ES-005B.
+// CV, SOP, LOR, and Motivation Letter all have real, working builders
+// today — each case below honestly points to its own. The Human
+// Assistant offer still applies to all of them; a working builder
+// doesn't remove the value of a second pair of eyes.
 function buildDocumentReadyText(docType: string): string {
-  if (docType === "CV / Resume") {
-    return "That's great to hear! You're welcome to review or export it anytime using our CV Builder, and our Human Assistant can also take a look before you apply, if that would help.";
+  const builderNameByDocType: Record<string, string> = {
+    "CV / Resume": "CV Builder",
+    "Statement of Purpose (SOP)": "SOP Builder",
+    "Letter of Recommendation (LOR)": "LOR Builder",
+    "Motivation Letter": "Motivation Letter Builder",
+  };
+  const builderName = builderNameByDocType[docType];
+  if (builderName) {
+    return `That's great to hear! You're welcome to review or export it anytime using our ${builderName}, and our Human Assistant can also take a look before you apply, if that would help.`;
   }
   return `That's great to hear! I can't review your ${docType} directly in this chat, but our Human Assistant would be glad to take a look before you apply, if that would help.`;
 }
@@ -479,6 +487,19 @@ function buildGuidanceText(journey: JourneyDefinition, answers: Record<string, s
 
     case "improve-documents": {
       const doc = answers.docType ?? "document";
+      const builderNameByDocType: Record<string, string> = {
+        "CV / Resume": "CV Builder",
+        "Statement of Purpose (SOP)": "SOP Builder",
+        "Letter of Recommendation (LOR)": "LOR Builder",
+        "Motivation Letter": "Motivation Letter Builder",
+      };
+      const builderName = builderNameByDocType[doc];
+      if (builderName) {
+        return (
+          `Nice — working on your ${doc} is a great step. You're welcome to work on it anytime using our ${builderName}, ` +
+          `and our Human Assistant can also review a draft with you directly if that would help.`
+        );
+      }
       return (
         `Nice — working on your ${doc} is a great step. I can't generate or edit the document itself here, ` +
         `but our Human Assistant can review a draft with you directly if that would help.`

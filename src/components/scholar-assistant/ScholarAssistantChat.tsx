@@ -208,7 +208,7 @@ export default function ScholarAssistantChat({ onBack }: ScholarAssistantChatPro
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="font-extrabold text-sm text-slate-800 dark:text-white">Scholar Assistant</h2>
-          <p className="text-[11px] text-slate-400 dark:text-slate-500">Here to help you find opportunities</p>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500">Your guided scholarship and application companion</p>
         </div>
         <button
           type="button"

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Users, X } from "lucide-react";
+import { Users, X, MessageCircle } from "lucide-react";
 
 /**
  * ES-011 — shared document-builder infrastructure.
@@ -100,8 +100,17 @@ export default function HumanAssistantReviewPrompt({ open, onClose, documentLabe
               <>
                 <h3 className="font-extrabold text-base text-slate-800 dark:text-white mb-1.5">Noted, thank you.</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
-                  We've recorded your interest. In the meantime, you can also reach our Human Assistant directly through the Scholar Assistant chat.
+                  We've recorded your interest. You can also reach our Human Assistant directly right now, if you'd like to talk sooner.
                 </p>
+                <a
+                  href="https://wa.me/9779849530970"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-nepal-blue to-nepal-blue-light text-white rounded-xl text-sm font-bold shadow-sm hover:opacity-95 transition-all cursor-pointer mb-2"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Chat on WhatsApp
+                </a>
                 <button
                   type="button"
                   onClick={handleClose}

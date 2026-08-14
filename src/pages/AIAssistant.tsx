@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
 import {
-  MessageSquare,
   MessageCircle,
   Lightbulb,
   ListChecks,
@@ -65,6 +64,13 @@ const ACTION_CARDS: ActionCardConfig[] = [
     targetTab: "lor-builder",
   },
   {
+    id: "motivation-letter-review",
+    emoji: "💌",
+    label: "Motivation Letter Review",
+    description: "Craft a compelling motivation letter, section by section.",
+    targetTab: "motivation-letter-builder",
+  },
+  {
     id: "explore-countries",
     emoji: "🌍",
     label: "Explore Countries",
@@ -84,13 +90,6 @@ const ACTION_CARDS: ActionCardConfig[] = [
     label: "Application Timeline",
     description: "Track deadlines across all your applications.",
     targetTab: "dashboard",
-  },
-  {
-    id: "saved-scholarships",
-    emoji: "⭐",
-    label: "Saved Scholarships",
-    description: "Revisit the opportunities you've bookmarked.",
-    targetTab: null,
   },
 ];
 
@@ -199,30 +198,7 @@ export default function AIAssistant({ setCurrentTab }: AIAssistantProps) {
         </div>
 
         {/* Lower Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* Recent Conversations */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.35 }}
-            className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-6 shadow-sm"
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                <MessageSquare className="h-4 w-4" />
-              </div>
-              <h3 className="font-extrabold text-sm text-slate-800 dark:text-white">
-                Recent Conversations
-              </h3>
-            </div>
-            <div className="text-center py-8">
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Your conversations with the AI Assistant will appear here once you start one.
-              </p>
-            </div>
-          </motion.div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* Scholarship Tips */}
           <motion.div
