@@ -1,15 +1,47 @@
 import React from "react";
-import { Landmark, Compass, DollarSign, Languages, ShieldAlert, ArrowRight, CheckCircle2, FileText } from "lucide-react";
+import { Landmark, Compass, DollarSign, Languages, ShieldAlert, ArrowRight, CheckCircle2, FileText, Clock, GraduationCap, Briefcase, Award } from "lucide-react";
 import { COUNTRIES } from "../data/scholarships";
+import { COUNTRY_ENHANCEMENTS } from "../data/countryEnhancements";
 
 interface CountriesProps {
   setCurrentTab: (tab: string) => void;
   setSelectedScholarshipId: (id: string | null) => void;
   // Let's allow passing trigger filters to parent
   onSelectCountryFilter: (countryName: string) => void;
+  setPlaceholderMeta: (meta: { title: string; category: string; description: string; comingSoonFeatures: string[]; type: "opportunity" | "resource" }) => void;
 }
 
-export default function Countries({ setCurrentTab, setSelectedScholarshipId, onSelectCountryFilter }: CountriesProps) {
+/**
+ * ES-009A v1.1 — trust indicator label.
+ *
+ * `liveCount` is optional and unused today (no per-country live
+ * database count exists anywhere in this app yet — the old
+ * `popularScholarshipsCount` hardcoded numbers have been removed from
+ * display, not replaced with new fabricated ones). When a real,
+ * database-backed count becomes available, pass it here; until then
+ * this always renders the neutral, honest label.
+ */
+function getTrustLabel(liveCount?: number): string {
+  return liveCount !== undefined ? `${liveCount} Verified Scholarships` : "Verified Scholarship Information";
+}
+
+export default function Countries({ setCurrentTab, setSelectedScholarshipId, onSelectCountryFilter, setPlaceholderMeta }: CountriesProps) {
+  const openNOCGuidePlaceholder = () => {
+    setPlaceholderMeta({
+      title: "Complete NOC Guide",
+      category: "NOC",
+      description: "A full, step-by-step walkthrough of the No Objection Letter process for Nepali students — required documents, MOEST portal steps, and typical turnaround time.",
+      comingSoonFeatures: [
+        "Full MOEST online NOC application walkthrough",
+        "Required document checklist by study level",
+        "Common rejection reasons and how to avoid them",
+        "Typical turnaround time by province",
+      ],
+      type: "resource",
+    });
+    setCurrentTab("placeholder");
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
       
@@ -28,13 +60,15 @@ export default function Countries({ setCurrentTab, setSelectedScholarshipId, onS
 
       {/* Main Grid showing countries */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {COUNTRIES.map((country) => (
+        {COUNTRIES.map((country) => {
+          const enhancement = COUNTRY_ENHANCEMENTS[country.code];
+          return (
           <div
             key={country.code}
             className="bg-white dark:bg-nepal-dark border border-slate-200/60 dark:border-slate-800/60 rounded-3xl overflow-hidden shadow-premium hover:shadow-premium-hover transition-all duration-300"
           >
             {/* Banner Image */}
-            <div className="h-56 relative overflow-hidden">
+            <div className="h-80 relative overflow-hidden">
               <img
                 src={country.image}
                 alt={country.name}
@@ -42,7 +76,15 @@ export default function Countries({ setCurrentTab, setSelectedScholarshipId, onS
                 referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
-              
+
+              {/* Advantage Badge */}
+              {enhancement && (
+                <span className="absolute top-4 right-4 inline-flex items-center gap-1 text-[10px] font-bold text-white bg-nepal-crimson/90 backdrop-blur-xs px-2.5 py-1 rounded-full">
+                  <Award className="h-3 w-3" />
+                  {enhancement.advantageBadge}
+                </span>
+              )}
+
               {/* Floating Country Name & Flag */}
               <div className="absolute bottom-5 left-5 flex items-center gap-3">
                 <span className="text-4xl" role="img" aria-label={country.name}>
@@ -52,8 +94,18 @@ export default function Countries({ setCurrentTab, setSelectedScholarshipId, onS
                   <h2 className="text-2xl font-black text-white tracking-tight">
                     {country.name}
                   </h2>
-                  <span className="inline-block text-[10px] font-bold text-nepal-gold font-mono uppercase bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-md mt-0.5">
-                    {country.popularScholarshipsCount} Verified Scholarships
+                  {/*
+                    Trust indicator — deliberately NOT a hardcoded/fabricated
+                    scholarship count (see ES-009A v1.1). getTrustLabel()
+                    accepts an optional live count; today no per-country
+                    live count exists anywhere in the app, so it always
+                    renders the neutral label. When a real database-backed
+                    count is available later, pass it into getTrustLabel()
+                    at this one call site — no other UI/CSS change needed.
+                  */}
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-nepal-gold font-mono uppercase bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-md mt-0.5">
+                    <CheckCircle2 className="h-3 w-3" />
+                    {getTrustLabel()}
                   </span>
                 </div>
               </div>
@@ -96,6 +148,70 @@ export default function Countries({ setCurrentTab, setSelectedScholarshipId, onS
                     </span>
                   </div>
                 </div>
+
+                {enhancement && (
+                  <>
+                    {/* Tuition Overview */}
+                    <div className="flex gap-2.5 items-start">
+                      <div className="p-2 bg-nepal-gold/10 text-nepal-gold rounded-xl mt-0.5 shrink-0">
+                        <GraduationCap className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <span className="block text-[10px] text-slate-400 font-bold uppercase font-mono">
+                          Tuition Overview
+                        </span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                          {enhancement.tuitionOverview}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Visa Processing Time */}
+                    <div className="flex gap-2.5 items-start">
+                      <div className="p-2 bg-purple-500/10 text-purple-500 rounded-xl mt-0.5 shrink-0">
+                        <Clock className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <span className="block text-[10px] text-slate-400 font-bold uppercase font-mono">
+                          Visa Processing Time
+                        </span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                          {enhancement.visaProcessingTime}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Part-Time Work Rights */}
+                    <div className="flex gap-2.5 items-start">
+                      <div className="p-2 bg-cyan-500/10 text-cyan-500 rounded-xl mt-0.5 shrink-0">
+                        <Briefcase className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <span className="block text-[10px] text-slate-400 font-bold uppercase font-mono">
+                          Part-Time Work Rights
+                        </span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                          {enhancement.partTimeWorkRights}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Post-Study Work Opportunity */}
+                    <div className="flex gap-2.5 items-start">
+                      <div className="p-2 bg-rose-500/10 text-rose-500 rounded-xl mt-0.5 shrink-0">
+                        <Compass className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <span className="block text-[10px] text-slate-400 font-bold uppercase font-mono">
+                          Post-Study Work
+                        </span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                          {enhancement.postStudyWorkOpportunity}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Nepali Student Specific Visa Guidance */}
@@ -135,7 +251,8 @@ export default function Countries({ setCurrentTab, setSelectedScholarshipId, onS
 
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Cultural Info Alert Strip */}
@@ -150,6 +267,14 @@ export default function Countries({ setCurrentTab, setSelectedScholarshipId, onS
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-3xl">
             Under Ministry of Education, Science and Technology (MOEST) guidelines, all Nepali nationals pursuing foreign study MUST apply for an online NOC certificate before remitting semester tuition or buying international airfare. We advise applying as soon as you receive your visa/scholarship letter.
           </p>
+          <button
+            type="button"
+            onClick={openNOCGuidePlaceholder}
+            className="inline-flex items-center gap-1 text-xs font-bold text-nepal-crimson dark:text-nepal-crimson-light hover:underline pt-1 cursor-pointer"
+          >
+            <span>Read Complete NOC Guide</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
 

@@ -1,9 +1,11 @@
-import React, { useState } from "react";
-import { Search, Compass, Award, Heart, Users, ArrowRight, ArrowDown, ChevronRight, CheckCircle2, Star, Sparkles, BookOpen, ShieldCheck, HelpCircle, Landmark } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Search, Award, Heart, Users, ArrowRight, ChevronRight, CheckCircle2, Star, Sparkles, BookOpen, ShieldCheck, HelpCircle } from "lucide-react";
 import { motion } from "motion/react";
-import { SCHOLARSHIPS, FAQS, TESTIMONIALS } from "../data/scholarships";
+import { FAQS, TESTIMONIALS } from "../data/scholarships";
 import EligibilityChecker from "../components/EligibilityChecker";
 import ScholarshipCard from "../components/ScholarshipCard";
+import { notifySuccess, notifyError } from "../lib/notifications";
+import { getFeaturedScholarships, getScholarships, Scholarship } from "../lib/scholarships";
 
 interface HomeProps {
   setCurrentTab: (tab: string) => void;
@@ -27,19 +29,91 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
   const handleSaveToggle = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSavedIds(prev => {
-      const next = prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id];
+      const isSaving = !prev.includes(id);
+      const next = isSaving ? [...prev, id] : prev.filter(item => item !== id);
       localStorage.setItem("saved_scholarships", JSON.stringify(next));
+      if (isSaving) {
+        notifySuccess("Scholarship saved.");
+      }
       return next;
     });
   };
 
-  const featuredList = SCHOLARSHIPS.filter(sch => sch.featured);
+  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadFeaturedScholarships() {
+      setLoading(true);
+      const { data, error } = await getFeaturedScholarships();
+
+      if (!isMounted) return;
+
+      if (error) {
+        notifyError(error);
+      } else {
+        setScholarships(data ?? []);
+      }
+      setLoading(false);
+    }
+
+    loadFeaturedScholarships();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Separate fetch of ALL active scholarships (not just featured), used
+  // only to compute live statistics below. Kept independent from the
+  // featured-scholarships fetch above so that existing, working code is
+  // not touched by this change.
+  const [allScholarships, setAllScholarships] = useState<Scholarship[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadAllScholarships() {
+      const { data, error } = await getScholarships();
+
+      if (!isMounted) return;
+
+      if (error) {
+        notifyError(error);
+      } else {
+        setAllScholarships(data ?? []);
+      }
+    }
+
+    loadAllScholarships();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Live statistics, derived from the real scholarships table.
+  //
+  // Only 2 of the original 4 stat cards can be honestly backed by the
+  // locked schema — "Total Scholarships Matched" (a monetary sum) and
+  // "Nepali Recipients Active" (an applicant count) have no
+  // corresponding column or table anywhere in the schema. Those two
+  // remain as their previous static values below rather than being
+  // silently faked as "live." See project report for the decision this
+  // needs from the Production Owner.
+  const uniqueCountriesCount = new Set(allScholarships.map((s) => s.country)).size;
+  const partnerOrganizationsCount = new Set(allScholarships.map((s) => s.organization)).size;
+  const fullyFundedCount = allScholarships.filter((s) =>
+    s.funding_type?.toLowerCase().includes("fully")
+  ).length;
 
   const stats = [
-    { value: "Rs. 1.2 Billion+", label: "Total Scholarships Matched", color: "from-blue-600 to-indigo-600" },
-    { value: "450+ Scholar", label: "Nepali Recipients Active", color: "from-nepal-crimson to-rose-600" },
-    { value: "32+", label: "Host Countries Included", color: "from-amber-500 to-yellow-600" },
-    { value: "94.2%", label: "SOP Success Rate", color: "from-emerald-500 to-teal-600" }
+    { value: `${allScholarships.length}+`, label: "Total Scholarships Listed", color: "from-blue-600 to-indigo-600" },
+    { value: `${uniqueCountriesCount}+`, label: "Host Countries Included", color: "from-amber-500 to-yellow-600" },
+    { value: `${partnerOrganizationsCount}+`, label: "Partner Organizations", color: "from-nepal-crimson to-rose-600" },
+    { value: `${fullyFundedCount}+`, label: "Fully Funded Opportunities", color: "from-emerald-500 to-teal-600" }
   ];
 
   const categoriesList = [
@@ -63,7 +137,7 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
 
   return (
     <div className="space-y-20 pb-20">
-      
+
       {/* 1. Hero Section */}
       <section className="relative overflow-hidden pt-12 pb-20 sm:pb-28">
         {/* Subtle Decorative Elements */}
@@ -72,71 +146,114 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
+
             {/* Left Column Copy */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               {/* Culture Badge */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-nepal-crimson/10 text-nepal-crimson dark:text-nepal-crimson-light rounded-full text-xs font-extrabold tracking-wider uppercase font-mono animate-pulse">
-                <Sparkles className="h-3.5 w-3.5" /> Launching Your Global Academic Journey
+              <div className="animate-pulse inline-flex items-center gap-1.5 px-3 py-1.5 bg-nepal-crimson/10 text-nepal-crimson dark:text-nepal-crimson-light rounded-full text-[14px] font-extrabold tracking-wider uppercase">
+                <Sparkles className="h-3.5 w-3.5" />
+                AI-Powered Scholarship Discovery Platform
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-nepal-blue dark:text-white leading-none">
-                Discover Fully Funded <br />
-                <span className="text-nepal-crimson dark:text-nepal-crimson-light">Scholarships Worldwide</span>
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] text-nepal-blue dark:text-white">
+                Discover Opportunities
+                <br />
+                <span className="bg-gradient-to-r from-nepal-blue via-nepal-crimson to-nepal-gold bg-clip-text text-transparent">
+                  Shape Your Future
+                </span>
               </h1>
 
               <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                KIPLANScholar is Nepal's premium portal for students, women researchers, social entrepreneurs, and global-bound professionals to find authentic, fully-funded study grants, fellowships, and expert-written SOP guides.
+                Explore AI-curated scholarships, fellowships, grants, internships, exchange programs, and research opportunities from leading universities and organizations worldwide—all in one trusted platform.
               </p>
 
-              {/* Dynamic Search Bar */}
-              <form onSubmit={handleSearchSubmit} className="max-w-xl mx-auto lg:mx-0">
-                <div className="relative flex items-center p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg transition-all focus-within:border-nepal-crimson">
-                  <div className="pl-3.5">
-                    <Search className="h-5 w-5 text-slate-400" />
+              {/* Dynamic Search Bar + Scholar Assistant CTA */}
+              <div className="flex flex-col sm:flex-row items-stretch gap-3 max-w-2xl mx-auto lg:mx-0">
+                <form onSubmit={handleSearchSubmit} className="flex-1">
+                  <div className="relative flex items-center p-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(30,58,138,0.15)] focus-within:border-nepal-crimson focus-within:ring-4 focus-within:ring-nepal-crimson/10">
+                    <div className="pl-3.5">
+                      <Search className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search e.g. Chevening, UK, Women STEM..."
+                      className="w-full pl-3 pr-4 py-4 bg-transparent text-base font-medium focus:outline-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
+                    />
+                    <button
+                      type="submit"
+                      className="px-8 py-4 bg-gradient-to-r from-nepal-blue to-nepal-blue-light text-white font-bold rounded-2xl shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer whitespace-nowrap"
+                    >
+                      Explore Opportunities
+                    </button>
                   </div>
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search e.g. Chevening, UK, Women STEM..."
-                    className="w-full pl-2.5 pr-4 py-3 bg-transparent text-sm focus:outline-none text-slate-800 dark:text-slate-100"
-                  />
-                  <button
-                    type="submit"
-                    className="px-6 py-3 bg-gradient-to-r from-nepal-blue to-nepal-blue-light dark:from-nepal-crimson dark:to-nepal-crimson-light text-white font-bold text-sm rounded-xl hover:opacity-95 shadow-md hover:shadow-lg transition-all cursor-pointer whitespace-nowrap"
-                  >
-                    Find Grants
-                  </button>
-                </div>
-              </form>
+                </form>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentTab("ai-assistant")}
+                  className="px-8 py-4 bg-gradient-to-r from-nepal-blue to-nepal-blue-light text-white font-bold rounded-2xl shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer whitespace-nowrap"
+                >
+                  Ask Scholar Assistant
+                </button>
+              </div>
 
               {/* Quick trust proofs */}
               <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-xs font-semibold text-slate-500 pt-2">
-                <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-emerald-500" /> No Mock Data - 100% Authentic Grants</span>
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                  No Mock Data - 100% Authentic Grants
+                </span>
+
                 <span className="hidden sm:inline">•</span>
-                <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-nepal-gold" /> Personalized Filter Matching</span>
+
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-nepal-gold" />
+                  Personalized Filter Matching
+                </span>
+              </div>
+
+              {/* Global Opportunities */}
+              <div className="pt-6">
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-3">
+                  Explore opportunities in{" "}
+                  <span className="text-nepal-crimson font-bold">30+ countries</span>
+                </p>
+
+                <div className="flex flex-wrap justify-center lg:justify-start items-center gap-3 text-3xl">
+                  <span className="hover:scale-125 transition-transform duration-300">🇬🇧</span>
+                  <span className="hover:scale-125 transition-transform duration-300">🇺🇸</span>
+                  <span className="hover:scale-125 transition-transform duration-300">🇨🇦</span>
+                  <span className="hover:scale-125 transition-transform duration-300">🇦🇺</span>
+                  <span className="hover:scale-125 transition-transform duration-300">🇩🇪</span>
+                  <span className="hover:scale-125 transition-transform duration-300">🇯🇵</span>
+                  <span className="hover:scale-125 transition-transform duration-300">🇰🇷</span>
+                  <span className="hover:scale-125 transition-transform duration-300">🇫🇷</span>
+                  <span className="hover:scale-125 transition-transform duration-300">🇳🇱</span>
+                  <span className="hover:scale-125 transition-transform duration-300">🇸🇪</span>
+                </div>
               </div>
             </div>
 
             {/* Right Column Graphic / Highlight Widget */}
             <div className="lg:col-span-5 relative">
               <div className="relative bg-slate-900/5 dark:bg-white/5 p-4 rounded-3xl border border-slate-200/40 dark:border-slate-800/40">
+
                 <img
-                  src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=600&auto=format&fit=crop"
+                  src="/assets/images/global_sucess.png"
                   alt="Nepali Scholar celebrating success"
-                  className="rounded-2xl w-full object-cover shadow-lg aspect-4/3"
-                  referrerPolicy="no-referrer"
+                  className="w-full h-[500px] object-cover rounded-2xl shadow-xl"
                 />
-                
+
                 {/* Floating Overlay Badge */}
                 <div className="absolute -bottom-6 -left-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xl flex items-center gap-3 animate-bounce">
                   <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl">
                     <Star className="h-5 w-5 fill-emerald-500" />
                   </div>
                   <div>
-                    <h5 className="font-extrabold text-sm text-slate-800 dark:text-white">Success Stories</h5>
-                    <p className="text-[11px] text-slate-400 font-medium">100% Free Resources</p>
+                    <h5 className="font-extrabold text-sm text-slate-800 dark:text-white">Verified Opportunities</h5>
+                    <p className="text-[11px] text-slate-400 font-medium">Scholarships • Grants • Fellowships</p>
                   </div>
                 </div>
               </div>
@@ -210,7 +327,7 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
       {/* 4. Interactive Matching (Split Screen) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          
+
           {/* Left instructions block */}
           <div className="lg:col-span-5 space-y-6">
             <span className="text-xs font-bold uppercase tracking-widest text-nepal-crimson dark:text-nepal-crimson-light font-mono">
@@ -224,15 +341,15 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
             </p>
             <div className="space-y-3 pt-2 text-sm text-slate-700 dark:text-slate-300">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" />
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                 <span>Filters by exact GPA & study requirements</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" />
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                 <span>Includes specialized women & STEM pathways</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" />
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                 <span>Generates customized advice instantly</span>
               </div>
             </div>
@@ -266,15 +383,35 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredList.map((sch) => (
-            <ScholarshipCard
-              key={sch.id}
-              scholarship={sch}
-              isSaved={savedIds.includes(sch.id)}
-              onSaveToggle={(e) => handleSaveToggle(sch.id, e)}
-              onExplore={() => onSelectScholarship(sch.id)}
-            />
-          ))}
+          {loading ? (
+            // Loading skeleton — same grid, same card footprint, no layout shift once data arrives
+            Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse bg-white dark:bg-nepal-dark border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-6 h-64 space-y-4"
+              >
+                <div className="h-4 w-2/3 bg-slate-200 dark:bg-slate-700 rounded" />
+                <div className="h-3 w-1/2 bg-slate-200 dark:bg-slate-700 rounded" />
+                <div className="h-3 w-full bg-slate-200 dark:bg-slate-700 rounded" />
+                <div className="h-3 w-5/6 bg-slate-200 dark:bg-slate-700 rounded" />
+                <div className="h-8 w-24 bg-slate-200 dark:bg-slate-700 rounded mt-auto" />
+              </div>
+            ))
+          ) : scholarships.length === 0 ? (
+            <div className="col-span-full text-center py-12 text-slate-500 dark:text-slate-400 text-sm font-medium">
+              No featured scholarships available.
+            </div>
+          ) : (
+            scholarships.map((sch) => (
+              <ScholarshipCard
+                key={sch.id}
+                scholarship={sch}
+                isSaved={savedIds.includes(sch.id)}
+                onSaveToggle={(e) => handleSaveToggle(sch.id, e)}
+                onExplore={() => onSelectScholarship(sch.id)}
+              />
+            ))
+          )}
         </div>
       </section>
 
@@ -295,7 +432,7 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
               <div key={test.id} className="bg-white dark:bg-nepal-dark rounded-2xl p-6 border border-slate-200/40 dark:border-slate-800/40 shadow-sm space-y-4">
                 <div className="flex items-center gap-1 text-nepal-gold">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4.5 w-4.5 fill-current" />
+                    <Star key={i} className="h-5 w-5 fill-current" />
                   ))}
                 </div>
                 <p className="text-sm text-slate-600 dark:text-slate-300 italic leading-relaxed">
@@ -368,7 +505,7 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-nepal-blue to-nepal-blue-light text-white p-8 sm:p-12 text-center shadow-xl">
           {/* Subtle gold decoration */}
           <div className="absolute top-0 right-0 w-40 h-40 bg-nepal-gold/10 rounded-full blur-2xl" />
-          
+
           <div className="max-w-2xl mx-auto space-y-6">
             <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight">
               Ready to Secure Your Scholarship?

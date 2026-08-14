@@ -15,6 +15,7 @@ import {
   Building
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { notifySuccess } from "../lib/notifications";
 
 interface Organization {
   id: string;
@@ -170,6 +171,17 @@ export default function Organizations() {
     return matchesSearch && matchesFilter;
   });
 
+  // Copies the support email to the clipboard so there's always visible
+  // confirmation, even if the visitor's browser/OS has no default mail
+  // client configured (in which case a mailto: link alone produces no
+  // visible feedback at all). The mailto: href is left intact below so
+  // it still opens a mail client for anyone who has one.
+  const handleRequestSupportClick = () => {
+    navigator.clipboard.writeText("ipkiplan@gmail.com").then(() => {
+      notifySuccess("Email copied: ipkiplan@gmail.com");
+    });
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       
@@ -323,25 +335,6 @@ export default function Organizations() {
           </AnimatePresence>
         </div>
       )}
-
-      {/* Advisory section */}
-      <div className="mt-12 bg-gradient-to-r from-nepal-crimson/5 via-nepal-blue/5 to-nepal-gold/5 border border-slate-150 dark:border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="text-left space-y-1 md:max-w-2xl">
-          <h3 className="font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
-            <Sparkles className="h-4.5 w-4.5 text-nepal-crimson" /> Legal Translation & Attestation Services
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 leading-normal">
-            To submit applications successfully to embassies or university portals, most of the sponsoring organizations require Ministry of Foreign Affairs (MoFA) legal notary attestation. You can drop off your transcripts directly opposite our CTC mall office in Sundhara, Kathmandu, and we will translate and stamp them under KIPLAN Notaries.
-          </p>
-        </div>
-        <a 
-          href="mailto:ipkiplan@gmail.com" 
-          className="px-6 py-3 bg-slate-900 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer hover:bg-slate-800 transition-colors shrink-0 flex items-center gap-1.5"
-        >
-          <span>Request Legal Support</span>
-          <ArrowRight className="h-3.5 w-3.5" />
-        </a>
-      </div>
     </div>
   );
 }

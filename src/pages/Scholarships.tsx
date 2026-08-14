@@ -1,29 +1,23 @@
+import { getScholarships } from "../lib/scholarships";
+import { mapSupabaseScholarship } from "../utils/mapScholarship";
+import { notifyError } from "../lib/notifications";
 import React, { useState, useEffect } from "react";
 import {
-  Search,
-  Filter,
   Calendar,
   Award,
-  MapPin,
-  Tag,
-  ArrowRight,
   X,
   ChevronRight,
   CheckCircle,
   ExternalLink,
-  RefreshCw,
-  Layers,
   Sparkles,
   BookOpen,
-  Eye,
   Info,
   DollarSign,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { ALL_OPPORTUNITIES } from "../components/results/mockOpportunities";
 import { EnrichedOpportunity } from "../components/results/types";
-import SearchBar from "../components/results/SearchBar";
 import SortDropdown, { SortOption } from "../components/results/SortDropdown";
+import FilterBar from "../components/results/FilterBar";
 import FilterSidebar from "../components/results/FilterSidebar";
 import OpportunityGrid from "../components/results/OpportunityGrid";
 import StatisticsBar from "../components/results/StatisticsBar";
@@ -33,6 +27,7 @@ import LoadMore from "../components/results/LoadMore";
 interface ScholarshipsProps {
   selectedScholarshipId: string | null;
   setSelectedScholarshipId: (id: string | null) => void;
+  setCurrentTab: (tab: string) => void;
 }
 
 const INITIAL_FILTERS = {
@@ -49,13 +44,49 @@ const INITIAL_FILTERS = {
   showSavedOnly: false,
 };
 
+// ES-004 / B3: "Required Application Documents" and "Success &
+// Application Tips" in the Detail Panel have no backing schema data —
+// their source arrays are always empty, so those sections currently
+// never render. Per Chief Architect direction, this is temporarily
+// hidden rather than removed: Schema v2 is expected to add real
+// Application Documents / Application Tips / AI Guidance data, at
+// which point this flag (and only this flag) needs to flip to true —
+// no other code changes should be needed.
+const SHOW_UNIMPLEMENTED_DETAIL_SECTIONS = false;
+
 export default function Scholarships({
   selectedScholarshipId,
   setSelectedScholarshipId,
+  setCurrentTab,
 }: ScholarshipsProps) {
-  const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState(INITIAL_FILTERS);
-  const [sortBy, setSortBy] = useState<SortOption>("Most Popular");
+  // Search-state persistence key. sessionStorage (not localStorage) per
+  // requirement — survives navigation away/back and page refresh within
+  // the same tab, but clears when the tab/window is closed.
+  const SEARCH_STATE_KEY = "kiplan_scholarship_search_state";
+
+  const [search, setSearch] = useState<string>(() => {
+    try {
+      const saved = sessionStorage.getItem(SEARCH_STATE_KEY);
+      return saved ? JSON.parse(saved).search ?? "" : "";
+    } catch {
+      return "";
+    }
+  });
+  const [filters, setFilters] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(SEARCH_STATE_KEY);
+      return saved ? { ...INITIAL_FILTERS, ...JSON.parse(saved).filters } : INITIAL_FILTERS;
+    } catch {
+      return INITIAL_FILTERS;
+    }
+  });
+  // ES-004 / C1: previously defaulted to "Most Popular", which compares
+  // viewsCount — always 0 for every scholarship (no view-tracking data
+  // exists in the locked schema), so that sort had no real effect.
+  // "Deadline" is genuinely meaningful with current data.
+  const [sortBy, setSortBy] = useState<SortOption>("Deadline");
+  const [opportunities, setOpportunities] = useState<EnrichedOpportunity[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Mobile drawer state
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
@@ -96,13 +127,30 @@ export default function Scholarships({
     setVisibleItemsCount(6);
   };
 
+  // Persist search + filters to sessionStorage on every change. This is
+  // the single write path — resetFilters() above calls setSearch/
+  // setFilters, so a reset is automatically captured here too, with no
+  // separate clearing logic needed.
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(
+        SEARCH_STATE_KEY,
+        JSON.stringify({ search, filters })
+      );
+    } catch {
+      // sessionStorage can throw in rare cases (private browsing quota,
+      // etc.) — search still works in-memory for this session, it just
+      // won't survive a tab close/navigation-away-and-back in that case.
+    }
+  }, [search, filters]);
+
   // Sync details from other tabs/pages
   useEffect(() => {
     if (selectedScholarshipId) {
       if (selectedScholarshipId === "all") {
         resetFilters();
       } else {
-        const found = ALL_OPPORTUNITIES.find((opp) => opp.id === selectedScholarshipId);
+        const found = opportunities.find((opp) => opp.id === selectedScholarshipId);
         if (found) {
           setViewDetail(found);
         }
@@ -126,6 +174,32 @@ export default function Scholarships({
     }
   }, []);
 
+   // ES-004 / D1: previously queried Supabase directly, bypassing the
+   // canonical data service established during Scholarship Service
+   // Consolidation. Now routes through the same single source of truth
+   // every other page uses. getScholarships() already filters to
+   // active=true internally, matching the previous .eq("active", true).
+  useEffect(() => {
+    const fetchScholarships = async () => {
+      setLoading(true);
+      const { data, error } = await getScholarships();
+
+      if (error) {
+        console.error("Scholarship fetch error:", error);
+        notifyError(error);
+        setLoading(false);
+        return;
+      }
+
+      const mapped = (data || []).map(mapSupabaseScholarship);
+
+      setOpportunities(mapped);
+      setLoading(false);
+    };
+
+    fetchScholarships();
+  }, []);
+
   // Recalculate pagination reset when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -133,7 +207,7 @@ export default function Scholarships({
   }, [search, filters, sortBy]);
 
   // Filtering Logic
-  const filteredOpportunities = ALL_OPPORTUNITIES.filter((opp) => {
+  const filteredOpportunities = opportunities.filter((opp) => {
     const matchesSearch =
       search === "" ||
       opp.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -157,7 +231,8 @@ export default function Scholarships({
     const matchesTargetGroup =
       filters.targetGroup === "All" || opp.targetGroup === filters.targetGroup;
     const matchesSubject = filters.subject === "All" || opp.subjectArea === filters.subject;
-    const matchesOrgType = filters.orgType === "All" || opp.organizationType === filters.orgType;
+    const matchesOrgType =
+      filters.orgType === "All" || opp.organizationType === filters.orgType;
     const matchesSaved = !filters.showSavedOnly || savedIds.includes(opp.id);
 
     return (
@@ -187,10 +262,6 @@ export default function Scholarships({
         if (a.daysRemaining < 0 && b.daysRemaining >= 0) return 1;
         if (b.daysRemaining < 0 && a.daysRemaining >= 0) return -1;
         return a.daysRemaining - b.daysRemaining;
-      case "Opening Soon":
-        if (a.status === "Opening Soon" && b.status !== "Opening Soon") return -1;
-        if (b.status === "Opening Soon" && a.status !== "Opening Soon") return 1;
-        return a.daysRemaining - b.daysRemaining;
       case "Closing Soon":
         const aVal = a.daysRemaining < 0 ? 9999 : a.daysRemaining;
         const bVal = b.daysRemaining < 0 ? 9999 : b.daysRemaining;
@@ -210,9 +281,9 @@ export default function Scholarships({
 
   // Statistics calculation based on filtered opportunities
   const totalCount = sortedOpportunities.length;
-  const openCount = ALL_OPPORTUNITIES.filter((o) => o.status === "Open").length;
-  const closingSoonCount = ALL_OPPORTUNITIES.filter((o) => o.status === "Closing Soon").length;
-  const uniqueCountriesCount = new Set(ALL_OPPORTUNITIES.map((o) => o.country)).size;
+  const openCount = opportunities.filter((o) => o.status === "Open").length;
+  const closingSoonCount = opportunities.filter((o) => o.status === "Closing Soon").length;
+  const uniqueCountriesCount = new Set(opportunities.map((o) => o.country)).size;
 
   // Pagination indexing
   const totalPages = Math.ceil(sortedOpportunities.length / itemsPerPage);
@@ -229,7 +300,16 @@ export default function Scholarships({
       
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-1.5 text-xs font-bold text-slate-400 dark:text-slate-500 font-mono tracking-wide" aria-label="Breadcrumb">
-        <span className="hover:text-nepal-blue cursor-pointer transition-colors">Home</span>
+        <button
+          type="button"
+          onClick={() => {
+            setCurrentTab("home");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          className="hover:text-nepal-blue cursor-pointer transition-colors bg-transparent border-none p-0 font-bold text-xs text-slate-400 dark:text-slate-500 font-mono"
+        >
+          Home
+        </button>
         <ChevronRight className="h-3 w-3" />
         <span className="text-slate-800 dark:text-white">Opportunity Finder</span>
       </nav>
@@ -247,21 +327,36 @@ export default function Scholarships({
             Connect directly with verified graduate fellowships, fully funded international scholarships, tech startup accelerators, internships, and research grants designed for Nepali leaders.
           </p>
         </div>
-
-        {/* Mobile Filter Toggle */}
-        <button
-          onClick={() => setIsFilterDrawerOpen(true)}
-          className="lg:hidden w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-nepal-crimson to-nepal-crimson-light hover:opacity-95 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <Filter className="h-4 w-4" />
-          <span>Filters & Categories</span>
-          {Object.values(filters).filter((val) => val !== "All" && val !== false).length > 0 && (
-            <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-          )}
-        </button>
       </div>
 
-      {/* Quick Statistics Bar */}
+      {/* Horizontal Filter Bar — primary filter presentation (ES-004B).
+          Reuses the exact same filters/setFilters/search/onSearchChange
+          contract; the filtering predicate below is completely
+          untouched. FilterSidebar (rendered further down) is now the
+          secondary "More Filters" overlay for the remaining dimensions. */}
+      <FilterBar
+        search={search}
+        onSearchChange={setSearch}
+        filters={filters}
+        setFilters={setFilters}
+        onOpenMoreFilters={() => setIsFilterDrawerOpen(true)}
+        activeFilterCount={Object.values(filters).filter((val) => val !== "All" && val !== false).length}
+      />
+
+      {/* "More Filters" overlay — same FilterSidebar component and all
+          of its internal filter logic, unchanged; only its outer
+          visibility wrapper changed (see FilterSidebar.tsx). */}
+      <FilterSidebar
+        filters={filters}
+        setFilters={setFilters}
+        resetFilters={resetFilters}
+        savedCount={savedIds.length}
+        isOpen={isFilterDrawerOpen}
+        onClose={() => setIsFilterDrawerOpen(false)}
+      />
+
+      {/* Quick Statistics Bar — moved below the horizontal FilterBar per
+          ES-004B refinement; values/props unchanged. */}
       <StatisticsBar
         totalCount={totalCount}
         openCount={openCount}
@@ -269,63 +364,54 @@ export default function Scholarships({
         countriesCount={uniqueCountriesCount}
       />
 
-      {/* Primary Layout Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* Sidebar Filter Component (Desktop) & Mobile Drawer Component */}
-        <FilterSidebar
-          filters={filters}
-          setFilters={setFilters}
-          resetFilters={resetFilters}
-          savedCount={savedIds.length}
-          isOpen={isFilterDrawerOpen}
-          onClose={() => setIsFilterDrawerOpen(false)}
-        />
+      {/* Results Area — full width, no longer constrained to an 8-column
+          content area now that the sidebar is gone */}
+      <div className="space-y-6">
 
-        {/* Content Area (8 Columns) */}
-        <div className="lg:col-span-8 space-y-6">
-          
-          {/* Keyword Search Section */}
-          <SearchBar value={search} onChange={setSearch} totalCount={totalCount} />
+        {/* Sorting and Summary Dropdown */}
+        <SortDropdown value={sortBy} onChange={setSortBy} resultCount={totalCount} />
 
-          {/* Sorting and Summary Dropdown */}
-          <SortDropdown value={sortBy} onChange={setSortBy} resultCount={totalCount} />
-
-          {/* Desktop Sizing (Uses standard pagination) */}
-          <div className="hidden sm:block space-y-6">
-            <OpportunityGrid
-              opportunities={paginatedOpportunities}
-              savedIds={savedIds}
-              onSaveToggle={handleSaveToggle}
-              onExplore={setViewDetail}
-              onResetFilters={resetFilters}
-            />
-            
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+        {loading && opportunities.length === 0 ? (
+          <div className="flex items-center justify-center py-20 text-slate-500 dark:text-slate-400 text-sm font-medium">
+            Loading opportunities...
           </div>
+        ) : (
+          <>
+            {/* Desktop Sizing (Uses standard pagination) */}
+            <div className="hidden sm:block space-y-6">
+              <OpportunityGrid
+                opportunities={paginatedOpportunities}
+                savedIds={savedIds}
+                onSaveToggle={handleSaveToggle}
+                onExplore={setViewDetail}
+                onResetFilters={resetFilters}
+              />
+              
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
 
-          {/* Mobile Sizing (Uses responsive layout Load-More list) */}
-          <div className="block sm:hidden space-y-6">
-            <OpportunityGrid
-              opportunities={loadMoreOpportunities}
-              savedIds={savedIds}
-              onSaveToggle={handleSaveToggle}
-              onExplore={setViewDetail}
-              onResetFilters={resetFilters}
-            />
+            {/* Mobile Sizing (Uses responsive layout Load-More list) */}
+              <div className="block sm:hidden space-y-6">
+                <OpportunityGrid
+                  opportunities={loadMoreOpportunities}
+                  savedIds={savedIds}
+                  onSaveToggle={handleSaveToggle}
+                  onExplore={setViewDetail}
+                  onResetFilters={resetFilters}
+                />
 
-            <LoadMore
-              currentLoaded={loadMoreOpportunities.length}
-              totalAvailable={sortedOpportunities.length}
-              onLoadMore={() => setVisibleItemsCount((prev) => prev + 6)}
-            />
-          </div>
-
-        </div>
+                <LoadMore
+                  currentLoaded={loadMoreOpportunities.length}
+                  totalAvailable={sortedOpportunities.length}
+                  onLoadMore={() => setVisibleItemsCount((prev) => prev + 6)}
+                />
+              </div>
+            </>
+          )}
 
       </div>
 
@@ -367,7 +453,7 @@ export default function Scholarships({
                         <span>•</span>
                         <span>{viewDetail.educationLevel}</span>
                       </div>
-                      <h2 className="text-xl font-black text-nepal-blue dark:text-white leading-snug">
+                      <h2 id="slide-over-title" className="text-xl font-black text-nepal-blue dark:text-white leading-snug">
                         {viewDetail.title}
                       </h2>
                       <p className="text-xs text-slate-400 dark:text-slate-500 font-bold font-mono mt-0.5">
@@ -412,7 +498,11 @@ export default function Scholarships({
                           Bond Required
                         </span>
                         <span className="block text-sm font-extrabold text-slate-700 dark:text-slate-200 mt-1">
-                          {viewDetail.bondRequired === "Yes" ? "Yes (Service Contract)" : "No bond required"}
+                          {viewDetail.bondRequired === "Yes"
+                            ? "Yes (Service Contract)"
+                            : viewDetail.bondRequired === "No"
+                            ? "No bond required"
+                            : "Not specified"}
                         </span>
                       </div>
                     </div>
@@ -465,8 +555,8 @@ export default function Scholarships({
                       </ul>
                     </div>
 
-                    {/* Required Documents Checklist */}
-                    {viewDetail.requiredDocuments && viewDetail.requiredDocuments.length > 0 && (
+                    {/* Required Documents Checklist — hidden pending Schema v2, see SHOW_UNIMPLEMENTED_DETAIL_SECTIONS above */}
+                    {SHOW_UNIMPLEMENTED_DETAIL_SECTIONS && viewDetail.requiredDocuments && viewDetail.requiredDocuments.length > 0 && (
                       <div className="space-y-3.5">
                         <h4 className="text-xs uppercase tracking-wider font-extrabold text-slate-400 dark:text-slate-500 font-mono flex items-center gap-1.5">
                           <BookOpen className="h-4 w-4 text-indigo-500" />
@@ -485,8 +575,8 @@ export default function Scholarships({
                       </div>
                     )}
 
-                    {/* Application Tips */}
-                    {viewDetail.applicationTips && viewDetail.applicationTips.length > 0 && (
+                    {/* Application Tips — hidden pending Schema v2, see SHOW_UNIMPLEMENTED_DETAIL_SECTIONS above */}
+                    {SHOW_UNIMPLEMENTED_DETAIL_SECTIONS && viewDetail.applicationTips && viewDetail.applicationTips.length > 0 && (
                       <div className="space-y-3.5">
                         <h4 className="text-xs uppercase tracking-wider font-extrabold text-slate-400 dark:text-slate-500 font-mono flex items-center gap-1.5">
                           <Sparkles className="h-4 w-4 text-nepal-gold" />
@@ -543,4 +633,5 @@ export default function Scholarships({
 
     </div>
   );
+
 }

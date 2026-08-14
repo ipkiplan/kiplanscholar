@@ -766,8 +766,8 @@ Feel free to ask more specific questions about recommendations, visa processing,
         </div>
 
         {/* Right Side: Smart AI Counselor and Mentoring Panel */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="bg-gradient-to-br from-[#0F1B2D] to-slate-900 border border-slate-800 rounded-3xl p-6 text-white shadow-2xl relative overflow-hidden flex flex-col h-[520px]">
+        <div className="lg:col-span-4">
+          <div className="bg-gradient-to-br from-[#0F1B2D] to-slate-900 border border-slate-800 rounded-3xl p-6 text-white shadow-2xl relative overflow-hidden flex flex-col h-[740px]">
             {/* Top Accent Graphic */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-nepal-crimson/10 rounded-full blur-2xl pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-nepal-blue/15 rounded-full blur-2xl pointer-events-none" />
@@ -856,24 +856,6 @@ Feel free to ask more specific questions about recommendations, visa processing,
                 <Send className="h-4 w-4" />
               </button>
             </form>
-          </div>
-
-          {/* Quick legal checklist panel */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm space-y-3">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">Official Notary & Legal Hub</h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-normal">
-              Need certified translation or legal attestation of Tribhuvan or Kathmandu University transcripts for German/Swedish portals?
-            </p>
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs font-semibold text-slate-700 dark:text-slate-300 space-y-2">
-              <div className="flex justify-between items-center">
-                <span>MoFA Attestation slot</span>
-                <span className="text-nepal-crimson font-mono">Open</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>Certified Notary translation</span>
-                <span className="text-nepal-blue font-mono">Rs. 300 / Page</span>
-              </div>
-            </div>
           </div>
         </div>
 

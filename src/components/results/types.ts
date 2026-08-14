@@ -16,17 +16,7 @@ export interface EnrichedOpportunity extends Scholarship {
     | "Training"
     | "Accelerator"
     | "Incubator";
-  educationLevel: 
-    | "High School"
-    | "Diploma"
-    | "Undergraduate"
-    | "Bachelor's"
-    | "Master's"
-    | "PhD"
-    | "Postdoctoral"
-    | "Research"
-    | "Short Course"
-    | "Professional Training";
+  educationLevel: string;
   funding: 
     | "Fully Funded"
     | "Partially Funded"
@@ -35,7 +25,7 @@ export interface EnrichedOpportunity extends Scholarship {
     | "Paid Internship"
     | "Grant"
     | "Prize Money";
-  status: "Open" | "Opening Soon" | "Closing Soon" | "Closed";
+  status: "Rolling" | "Open" | "Closing Soon" | "Closed";
   intake: 
     | "January"
     | "February"
@@ -51,41 +41,8 @@ export interface EnrichedOpportunity extends Scholarship {
     | "December"
     | "Rolling Intake";
   gender: "All" | "Women" | "Men";
-  targetGroup: 
-    | "All"
-    | "Women"
-    | "Entrepreneurs"
-    | "Teachers"
-    | "Researchers"
-    | "Journalists"
-    | "Government Employees"
-    | "Civil Servants"
-    | "Lawyers"
-    | "Doctors"
-    | "Engineers"
-    | "Startup Founders"
-    | "Persons with Disabilities"
-    | "Refugees"
-    | "Indigenous Communities"
-    | "Youth Leaders";
-  subjectArea: 
-    | "Engineering"
-    | "AI"
-    | "Computer Science"
-    | "Data Science"
-    | "Medicine"
-    | "Public Health"
-    | "Agriculture"
-    | "Business"
-    | "Economics"
-    | "Law"
-    | "Education"
-    | "Climate Change"
-    | "Energy"
-    | "Environment"
-    | "Architecture"
-    | "Arts"
-    | "Humanities";
+  targetGroup: string;
+  subjectArea: string;
   organizationType: 
     | "Government"
     | "University"

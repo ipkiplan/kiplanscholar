@@ -2,7 +2,10 @@ import { SCHOLARSHIPS } from "../../data/scholarships";
 import { EnrichedOpportunity } from "./types";
 
 // Helper to calculate deadline info dynamically relative to July 21, 2026
-export function calculateDeadlineInfo(deadlineStr: string, openingDateStr?: string) {
+export function calculateDeadlineInfo(
+  deadlineStr: string,
+  openingDateStr?: string
+): { status: EnrichedOpportunity["status"]; daysRemaining: number } {
   const referenceDate = new Date("2026-07-21");
   
   if (!deadlineStr || deadlineStr.toLowerCase().includes("rolling")) {
@@ -25,7 +28,7 @@ export function calculateDeadlineInfo(deadlineStr: string, openingDateStr?: stri
     const openingDate = new Date(openingDateStr);
     if (!isNaN(openingDate.getTime()) && openingDate > referenceDate) {
       return {
-        status: "Opening Soon" as const,
+        status: "Opening Soon" as EnrichedOpportunity["status"],
         daysRemaining: Math.ceil((deadlineDate.getTime() - referenceDate.getTime()) / (1000 * 60 * 60 * 24)),
       };
     }
@@ -81,7 +84,7 @@ const enrichedFromOriginal: EnrichedOpportunity[] = SCHOLARSHIPS.map((s, index) 
   }
 
   // Calculate deadline and status
-  const { status, daysRemaining } = calculateDeadlineInfo(s.applicationDeadline);
+  const { status, daysRemaining } = calculateDeadlineInfo(s.applicationDeadline ?? "");
 
   // Infer Subject Area
   let subjectArea: EnrichedOpportunity["subjectArea"] = "Business";
@@ -143,7 +146,7 @@ const enrichedFromOriginal: EnrichedOpportunity[] = SCHOLARSHIPS.map((s, index) 
   const intakeMonths: EnrichedOpportunity["intake"][] = [
     "September", "October", "January", "August", "September", "October"
   ];
-  const intake = s.applicationDeadline.toLowerCase().includes("rolling")
+  const intake = (s.applicationDeadline ?? "").toLowerCase().includes("rolling")
     ? ("Rolling Intake" as const)
     : intakeMonths[index % intakeMonths.length];
 
@@ -170,15 +173,24 @@ const extraOpportunities: EnrichedOpportunity[] = [
     id: "opp-intern-google",
     slug: "google-software-internship-tokyo",
     title: "Google STEP Internship 2027",
+    // No `featured` signal exists anywhere in this hand-authored object
+    // (unlike enrichedFromOriginal's SCHOLARSHIPS-derived entries, which
+    // carry a real featured boolean via `{ ...s }` spread). Set to
+    // false as the evidence-based default: never curated/flagged as
+    // featured, not an arbitrary guess in either direction.
+    featured: false,
     provider: "Google Asia Pacific",
     organization: "Google",
+    org: "Google",
     description: "An intensive software engineering internship in Tokyo designed for undergraduate students. Interns work directly on product teams alongside experienced engineers.",
+    desc: "An intensive software engineering internship in Tokyo designed for undergraduate students. Interns work directly on product teams alongside experienced engineers.",
     amount: "Paid Internship (Stipend, Housing, Flights)",
     applicationDeadline: "2026-10-15",
     deadline: "2026-10-15",
     countries: ["Japan"],
     country: "Japan",
     levels: ["Undergraduate"],
+    level: "Undergraduate",
     academicLevel: "Undergraduate (Bachelor's)",
     categories: ["Nepali Students"],
     link: "https://careers.google.com/jobs/",
@@ -196,6 +208,7 @@ const extraOpportunities: EnrichedOpportunity[] = [
       "Direct mentorship from senior Google Engineers"
     ],
     fieldOfStudy: "Computer Science & Engineering",
+    field: "Computer Science & Engineering",
     fundingType: "Paid Internship",
     fullyFunded: "Yes",
     bondRequired: "No",
@@ -226,15 +239,19 @@ const extraOpportunities: EnrichedOpportunity[] = [
     id: "opp-grant-national-geographic",
     slug: "natgeo-explorer-grant",
     title: "National Geographic Explorer Grants 2026",
+    featured: false, // see rationale on the Google STEP entry above
     provider: "National Geographic Society",
     organization: "National Geographic",
+    org: "National Geographic",
     description: "Funding for conservation, education, research, social enterprise, and storytelling projects in Nepal and Southeast Asia.",
+    desc: "Funding for conservation, education, research, social enterprise, and storytelling projects in Nepal and Southeast Asia.",
     amount: "Up to $20,000 Project Funding",
     applicationDeadline: "2026-08-15",
     deadline: "2026-08-15",
     countries: ["Any"],
     country: "Global",
     levels: ["Graduate", "PhD", "Research"],
+    level: "Graduate",
     academicLevel: "Graduate & Research Levels",
     categories: ["Researchers", "Nepali Students"],
     link: "https://www.nationalgeographic.org/grants/",
@@ -251,6 +268,7 @@ const extraOpportunities: EnrichedOpportunity[] = [
       "Media exposure and storytelling training"
     ],
     fieldOfStudy: "Environmental Science & Storytelling",
+    field: "Environmental Science & Storytelling",
     fundingType: "Grant",
     fullyFunded: "Yes",
     bondRequired: "No",
@@ -282,15 +300,19 @@ const extraOpportunities: EnrichedOpportunity[] = [
     id: "opp-conf-one-young-world",
     slug: "one-young-world-summit",
     title: "One Young World Summit 2027 Scholarship",
+    featured: false, // see rationale on the Google STEP entry above
     provider: "One Young World",
     organization: "One Young World",
+    org: "One Young World",
     description: "Fully-funded attendance to the global summit for young leaders. Brings together 2,000+ change-makers from 190+ countries to debate solutions for the SDGs.",
+    desc: "Fully-funded attendance to the global summit for young leaders. Brings together 2,000+ change-makers from 190+ countries to debate solutions for the SDGs.",
     amount: "Fully Funded Conference Pass + Flights",
     applicationDeadline: "2026-12-01",
     deadline: "2026-12-01",
     countries: ["Germany"],
     country: "Germany",
     levels: ["Any"],
+    level: "Any",
     academicLevel: "All Levels (Age 18-30)",
     categories: ["Nepali Students", "Professionals"],
     link: "https://www.oneyoungworld.com/",
@@ -308,6 +330,7 @@ const extraOpportunities: EnrichedOpportunity[] = [
       "Ground transport within Munich"
     ],
     fieldOfStudy: "Leadership & Social Impact",
+    field: "Leadership & Social Impact",
     fundingType: "Fully Funded",
     fullyFunded: "Yes",
     bondRequired: "No",
@@ -338,15 +361,19 @@ const extraOpportunities: EnrichedOpportunity[] = [
     id: "opp-comp-hult-prize",
     slug: "hult-prize-competition",
     title: "Hult Prize $1M Social Startup Competition",
+    featured: false, // see rationale on the Google STEP entry above
     provider: "Hult Prize Foundation / UN",
     organization: "Hult Prize Foundation",
+    org: "Hult Prize Foundation",
     description: "The world's largest social entrepreneurship student competition. Teams pitch business models designed to address a critical global issue nominated by President Bill Clinton.",
+    desc: "The world's largest social entrepreneurship student competition. Teams pitch business models designed to address a critical global issue nominated by President Bill Clinton.",
     amount: "$1,000,000 Seed Prize Money",
     applicationDeadline: "2026-09-30",
     deadline: "2026-09-30",
     countries: ["United States"],
     country: "United States",
     levels: ["Undergraduate", "Graduate"],
+    level: "Undergraduate",
     academicLevel: "University Students",
     categories: ["Entrepreneurs", "Nepali Students"],
     link: "https://www.hultprize.org/",
@@ -363,6 +390,7 @@ const extraOpportunities: EnrichedOpportunity[] = [
       "Mentorship from leading venture capitalists and UN specialists"
     ],
     fieldOfStudy: "Social Entrepreneurship & Business",
+    field: "Social Entrepreneurship & Business",
     fundingType: "Prize Money",
     fullyFunded: "Yes",
     bondRequired: "No",
@@ -393,15 +421,19 @@ const extraOpportunities: EnrichedOpportunity[] = [
     id: "opp-acc-yc",
     slug: "y-combinator-startup-funding",
     title: "Y Combinator W27 Batch",
+    featured: false, // see rationale on the Google STEP entry above
     provider: "Y Combinator",
     organization: "Y Combinator",
+    org: "Y Combinator",
     description: "Twice a year, Y Combinator invests $500,000 in a large number of startups. Startups move to Silicon Valley for 3 months to build, talk to users, and scale.",
+    desc: "Twice a year, Y Combinator invests $500,000 in a large number of startups. Startups move to Silicon Valley for 3 months to build, talk to users, and scale.",
     amount: "$500,000 Venture Funding",
     applicationDeadline: "2026-09-15",
     deadline: "2026-09-15",
     countries: ["United States"],
     country: "United States",
     levels: ["Any"],
+    level: "Any",
     academicLevel: "All Levels (Startup Founders)",
     categories: ["Entrepreneurs"],
     link: "https://www.ycombinator.com/",
@@ -418,6 +450,7 @@ const extraOpportunities: EnrichedOpportunity[] = [
       "Life-long access to the YC founder network and resources"
     ],
     fieldOfStudy: "Computer Science & Tech Entrepreneurship",
+    field: "Computer Science & Tech Entrepreneurship",
     fundingType: "Accelerator",
     fullyFunded: "Yes",
     bondRequired: "No",
@@ -448,15 +481,19 @@ const extraOpportunities: EnrichedOpportunity[] = [
     id: "opp-volunteer-un",
     slug: "un-volunteer-nepal",
     title: "UN Volunteers - Climate Resilient Agriculture",
+    featured: false, // see rationale on the Google STEP entry above
     provider: "United Nations Volunteers / UNDP",
     organization: "UNDP Nepal",
+    org: "UNDP Nepal",
     description: "Join the UNDP team in Nepal as an official UN Volunteer. Support climate resilient agricultural programs in rural provinces, working with smallholder farmers.",
+    desc: "Join the UNDP team in Nepal as an official UN Volunteer. Support climate resilient agricultural programs in rural provinces, working with smallholder farmers.",
     amount: "Volunteer Stipend (Living Allowance, Health, Travel)",
     applicationDeadline: "2026-08-30",
     deadline: "2026-08-30",
     countries: ["Any"],
     country: "Global",
     levels: ["Undergraduate", "Graduate", "Any"],
+    level: "Undergraduate",
     academicLevel: "Bachelor or Master Candidates",
     categories: ["Nepali Students", "Professionals"],
     link: "https://www.unv.org/",
@@ -474,6 +511,7 @@ const extraOpportunities: EnrichedOpportunity[] = [
       "Official UN certification of professional service"
     ],
     fieldOfStudy: "Agriculture & Climate Science",
+    field: "Agriculture & Climate Science",
     fundingType: "Volunteer Stipend",
     fullyFunded: "Yes",
     bondRequired: "No",
@@ -505,15 +543,19 @@ const extraOpportunities: EnrichedOpportunity[] = [
     id: "opp-opening-soon-da",
     slug: "daad-exchange-coming",
     title: "DAAD Germany Exchange Fellowship 2027",
+    featured: false, // see rationale on the Google STEP entry above
     provider: "DAAD Germany",
     organization: "DAAD",
+    org: "DAAD",
     description: "An elite academic exchange fellowship offering bi-lateral research partnerships for young scholars from South Asia to teach or research in Germany.",
+    desc: "An elite academic exchange fellowship offering bi-lateral research partnerships for young scholars from South Asia to teach or research in Germany.",
     amount: "Fully Funded Monthly Stipend",
     applicationDeadline: "2026-11-01",
     deadline: "2026-11-01",
     countries: ["Germany"],
     country: "Germany",
     levels: ["Graduate", "PhD"],
+    level: "Graduate",
     academicLevel: "Master or PhD Students",
     categories: ["Researchers"],
     link: "https://www.daad.de/",
@@ -530,6 +572,7 @@ const extraOpportunities: EnrichedOpportunity[] = [
       "Health insurance coverage and flight tickets"
     ],
     fieldOfStudy: "Science & Engineering",
+    field: "Science & Engineering",
     fundingType: "Fully Funded",
     fullyFunded: "Yes",
     bondRequired: "No",
@@ -547,7 +590,7 @@ const extraOpportunities: EnrichedOpportunity[] = [
     opportunityType: "Exchange",
     educationLevel: "PhD",
     funding: "Fully Funded",
-    status: "Opening Soon",
+    status: "Opening Soon" as EnrichedOpportunity["status"],
     intake: "January",
     gender: "All",
     targetGroup: "Researchers",
@@ -561,15 +604,19 @@ const extraOpportunities: EnrichedOpportunity[] = [
     id: "opp-closed-mit",
     slug: "mit-summer-research",
     title: "MSRP (MIT Summer Research Program)",
+    featured: false, // see rationale on the Google STEP entry above
     provider: "MIT Graduate Education",
     organization: "MIT",
+    org: "MIT",
     description: "An elite summer research internship at the Massachusetts Institute of Technology. Interns spend 9 weeks working under world-famous professors in state-of-the-art laboratories.",
+    desc: "An elite summer research internship at the Massachusetts Institute of Technology. Interns spend 9 weeks working under world-famous professors in state-of-the-art laboratories.",
     amount: "Fully Funded Stipend, Housing, & Travel",
     applicationDeadline: "2026-01-30",
     deadline: "2026-01-30",
     countries: ["United States"],
     country: "United States",
     levels: ["Undergraduate"],
+    level: "Undergraduate",
     academicLevel: "Undergraduate (Junior Year)",
     categories: ["Nepali Students"],
     link: "https://gradeducation.mit.edu/msrp/",
@@ -587,6 +634,7 @@ const extraOpportunities: EnrichedOpportunity[] = [
       "Direct workshops for PhD admissions training"
     ],
     fieldOfStudy: "STEM Fields",
+    field: "STEM Fields",
     fundingType: "Fully Funded",
     fullyFunded: "Yes",
     bondRequired: "No",

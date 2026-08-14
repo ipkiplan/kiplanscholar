@@ -33,7 +33,23 @@ interface TrackedApplication {
   deadline: string;
 }
 
-export default function Dashboard() {
+// ES-006C: DashboardProps restored — App.tsx has always called
+// <Dashboard setCurrentTab={...} setPlaceholderMeta={...} />, matching
+// every other ProtectedRoute page's call pattern (see WorkspacePage's
+// identical shape). Dashboard's own body doesn't reference either prop
+// internally today, but per the explicit instruction to preserve
+// App.tsx's existing props rather than strip them, this restores the
+// interface App.tsx already expects instead of removing the call
+// site's arguments. Both are accepted (destructured) but not yet used
+// in the body — consistent with the rest of this component, not new
+// unused-variable debt, since Dashboard has no current need to
+// navigate or open a placeholder from within itself.
+interface DashboardProps {
+  setCurrentTab: (tab: string) => void;
+  setPlaceholderMeta: (meta: { title: string; category: string; description: string; comingSoonFeatures: string[]; type: "opportunity" | "resource" }) => void;
+}
+
+export default function Dashboard({ setCurrentTab, setPlaceholderMeta }: DashboardProps) {
   // Sync Profile Completion Stats
   const [profile, setProfile] = useState<any>(() => {
     try {

@@ -9,7 +9,6 @@ import {
   Activity,
   Calendar,
   Users,
-  Briefcase,
   BookOpen,
   Building,
   ChevronDown,
@@ -54,6 +53,30 @@ interface FilterSidebarProps {
   onClose: () => void; // Mobile drawer close handler
 }
 
+// ES-004 Addendum: Intake and Organization Type have no backing column
+// anywhere in the locked schema (mapScholarship.ts hardcodes both to a
+// single static value for every scholarship). Selecting any non-"All"
+// option here would silently return zero or misleading results with no
+// indication why. Per Chief Architect direction, these sections are
+// hidden rather than removed — the underlying filter state (in
+// Scholarships.tsx's INITIAL_FILTERS) and this component's own
+// `filters.intake` / `filters.orgType` props are untouched, so flipping
+// these two flags to true is the only change needed once Schema v2
+// adds real backing columns for either dimension.
+const SHOW_INTAKE_FILTER = false;
+const SHOW_ORG_TYPE_FILTER = false;
+
+// ES-004B refinement: the "Target Candidate Group" section previously
+// rendered here has been removed to eliminate duplication — this
+// dimension (filters.targetGroup) is now exclusively controlled via
+// the "Applicants" dropdown in the new horizontal FilterBar. The
+// underlying filters.targetGroup state, its type in FilterSidebarProps,
+// and the filtering predicate in Scholarships.tsx are all untouched —
+// only this component's own rendered section was removed. If this
+// dimension ever needs to appear in "More Filters" again, restore the
+// section using filters.targetGroup / handleFilterSelect("targetGroup", ...)
+// exactly as before.
+
 export default function FilterSidebar({
   filters,
   setFilters,
@@ -71,7 +94,6 @@ export default function FilterSidebar({
     status: true,
     intake: false,
     gender: false,
-    targetGroup: false,
     subject: false,
     orgType: false,
   });
@@ -124,19 +146,12 @@ export default function FilterSidebar({
     "Incubator",
   ];
 
-  const levels = [
-    "All",
-    "High School",
-    "Diploma",
-    "Undergraduate",
-    "Bachelor's",
-    "Master's",
-    "PhD",
-    "Postdoctoral",
-    "Research",
-    "Short Course",
-    "Professional Training",
-  ];
+  // ES-004B: previously a predefined list ("Bachelor's", "Master's",
+  // "High School", etc.) that never exactly matched any real
+  // degree_level value (same mismatch category as the Subject caveat
+  // noted below). Now uses the actual real values, consistent with the
+  // educationLevel fix in mapScholarship.ts.
+  const levels = ["All", "Undergraduate", "Graduate", "PhD", "Research", "Any"];
 
   const fundingTypes = [
     "All",
@@ -149,7 +164,11 @@ export default function FilterSidebar({
     "Prize Money",
   ];
 
-  const statuses = ["All", "Open", "Opening Soon", "Closing Soon", "Closed"];
+  // ES-004B: "Opening Soon" removed — status derivation in mapScholarship.ts
+  // can only ever produce Rolling/Open/Closing Soon/Closed, so this option
+  // could never match anything (same category of bug already fixed in the
+  // sort case during ES-004 C2, found here in the filter list too).
+  const statuses = ["All", "Open", "Closing Soon", "Closed", "Rolling"];
 
   const intakes = [
     "All",
@@ -170,25 +189,16 @@ export default function FilterSidebar({
 
   const genders = ["All", "Women", "Men"];
 
-  const targetGroups = [
-    "All",
-    "Women",
-    "Entrepreneurs",
-    "Teachers",
-    "Researchers",
-    "Journalists",
-    "Government Employees",
-    "Civil Servants",
-    "Lawyers",
-    "Doctors",
-    "Engineers",
-    "Startup Founders",
-    "Persons with Disabilities",
-    "Refugees",
-    "Indigenous Communities",
-    "Youth Leaders",
-  ];
-
+  // ES-004 Addendum note: subjectArea is now derived from the real
+  // field_of_study column (previously hardcoded to "Business"), so this
+  // section is kept enabled per Chief Architect direction. However, the
+  // pill options below are exact-match against free-text database
+  // values like "Biomedical, Physical Science, Engineering" — none of
+  // the 24 real scholarship records currently match any single pill
+  // here exactly, so most selections will still return zero results in
+  // practice. This is a genuine data/option-list mismatch, not a
+  // hardcoded-field bug — flagged for a future pass (see ES-004
+  // Addendum QA note), not fixed here per "smallest possible change."
   const subjects = [
     "All",
     "Engineering",
@@ -359,19 +369,21 @@ export default function FilterSidebar({
           {openSections.funding && renderFilterList(fundingTypes, filters.funding, "funding")}
         </div>
 
-        {/* Intake */}
-        <div className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
-          <button
-            onClick={() => toggleSection("intake")}
-            className="w-full flex justify-between items-center text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider font-mono cursor-pointer"
-          >
-            <span className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-teal-500" /> Intake Session
-            </span>
-            {openSections.intake ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </button>
-          {openSections.intake && renderFilterList(intakes, filters.intake, "intake")}
-        </div>
+        {/* Intake — hidden pending Schema v2, see SHOW_INTAKE_FILTER above */}
+        {SHOW_INTAKE_FILTER && (
+          <div className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
+            <button
+              onClick={() => toggleSection("intake")}
+              className="w-full flex justify-between items-center text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider font-mono cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-teal-500" /> Intake Session
+              </span>
+              {openSections.intake ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {openSections.intake && renderFilterList(intakes, filters.intake, "intake")}
+          </div>
+        )}
 
         {/* Gender */}
         <div className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
@@ -387,21 +399,9 @@ export default function FilterSidebar({
           {openSections.gender && renderFilterList(genders, filters.gender, "gender")}
         </div>
 
-        {/* Target Group */}
-        <div className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
-          <button
-            onClick={() => toggleSection("targetGroup")}
-            className="w-full flex justify-between items-center text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider font-mono cursor-pointer"
-          >
-            <span className="flex items-center gap-2">
-              <Briefcase className="h-4 w-4 text-sky-500" /> Target Candidate Group
-            </span>
-            {openSections.targetGroup ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </button>
-          {openSections.targetGroup && renderFilterList(targetGroups, filters.targetGroup, "targetGroup")}
-        </div>
-
-        {/* Subject Area */}
+        {/* Subject Area — kept enabled: subjectArea is now real data, not
+            hardcoded. See ES-004 Addendum note above the `subjects` array
+            regarding the exact-match/free-text data mismatch caveat. */}
         <div className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
           <button
             onClick={() => toggleSection("subject")}
@@ -415,73 +415,75 @@ export default function FilterSidebar({
           {openSections.subject && renderFilterList(subjects, filters.subject, "subject")}
         </div>
 
-        {/* Organization Type */}
-        <div className="pb-4">
-          <button
-            onClick={() => toggleSection("orgType")}
-            className="w-full flex justify-between items-center text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider font-mono cursor-pointer"
-          >
-            <span className="flex items-center gap-2">
-              <Building className="h-4 w-4 text-amber-500" /> Provider Organization
-            </span>
-            {openSections.orgType ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </button>
-          {openSections.orgType && renderFilterList(orgTypes, filters.orgType, "orgType")}
-        </div>
+        {/* Organization Type — hidden pending Schema v2, see SHOW_ORG_TYPE_FILTER above */}
+        {SHOW_ORG_TYPE_FILTER && (
+          <div className="pb-4">
+            <button
+              onClick={() => toggleSection("orgType")}
+              className="w-full flex justify-between items-center text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider font-mono cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                <Building className="h-4 w-4 text-amber-500" /> Provider Organization
+              </span>
+              {openSections.orgType ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {openSections.orgType && renderFilterList(orgTypes, filters.orgType, "orgType")}
+          </div>
+        )}
       </div>
     </div>
   );
 
   return (
-    <>
-      {/* Desktop View pinned to left side (4 columns) */}
-      <div className="hidden lg:block lg:col-span-4 bg-white dark:bg-nepal-dark border border-slate-200/60 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs sticky top-24">
-        {sidebarContent}
-      </div>
-
-      {/* Mobile Drawer (visible only when isOpen is true on smaller screens) */}
+    // ES-004B: previously rendered as an always-visible sticky sidebar
+    // on desktop (`hidden lg:block ... sticky`) plus a separate
+    // mobile-only slide-in drawer. Now that the horizontal FilterBar is
+    // the primary filter UI, this component serves as the secondary
+    // "More Filters" panel on both desktop and mobile — same drawer
+    // JSX and internal filter logic, unchanged, just no longer gated
+    // to mobile-only (`lg:hidden` removed) and the old always-visible
+    // desktop block removed.
+    <div
+      className={`fixed inset-0 z-50 flex justify-end transition-all duration-300 ${
+        isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      }`}
+    >
+      {/* Dark backdrop */}
       <div
-        className={`lg:hidden fixed inset-0 z-50 flex justify-end transition-all duration-300 ${
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs cursor-pointer"
+        onClick={onClose}
+      />
+
+      {/* Drawer Panel */}
+      <div
+        className={`relative w-full max-w-sm h-full bg-white dark:bg-nepal-dark border-l border-slate-200 dark:border-slate-800 p-5 flex flex-col justify-between shadow-2xl transition-transform duration-300 transform ${
+          isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* Dark backdrop */}
-        <div
-          className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs cursor-pointer"
+        <button
           onClick={onClose}
-        />
-
-        {/* Drawer Panel */}
-        <div
-          className={`relative w-full max-w-sm h-full bg-white dark:bg-nepal-dark border-l border-slate-200 dark:border-slate-800 p-5 flex flex-col justify-between shadow-2xl transition-transform duration-300 transform ${
-            isOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+          className="absolute top-4 right-4 p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 rounded-xl text-slate-500 cursor-pointer hover:text-rose-500"
         >
+          <X className="h-4.5 w-4.5" />
+        </button>
+
+        <div className="flex-1 mt-6 overflow-hidden">{sidebarContent}</div>
+
+        <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-4 flex gap-3 shrink-0">
+          <button
+            onClick={resetFilters}
+            className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-xs rounded-xl border border-slate-200/40 dark:border-slate-800/80 cursor-pointer"
+          >
+            Reset Filters
+          </button>
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 rounded-xl text-slate-500 cursor-pointer hover:text-rose-500"
+            className="flex-1 py-3 bg-gradient-to-r from-nepal-crimson to-nepal-crimson-light text-white font-extrabold text-xs rounded-xl shadow-md cursor-pointer"
           >
-            <X className="h-4.5 w-4.5" />
+            Apply Filter Presets
           </button>
-
-          <div className="flex-1 mt-6 overflow-hidden">{sidebarContent}</div>
-
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-4 flex gap-3 shrink-0">
-            <button
-              onClick={resetFilters}
-              className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-xs rounded-xl border border-slate-200/40 dark:border-slate-800/80 cursor-pointer"
-            >
-              Reset Filters
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 py-3 bg-gradient-to-r from-nepal-crimson to-nepal-crimson-light text-white font-extrabold text-xs rounded-xl shadow-md cursor-pointer"
-            >
-              Apply Filter Presets
-            </button>
-          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

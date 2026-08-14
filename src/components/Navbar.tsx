@@ -1,28 +1,25 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 import { 
   Menu, 
   X, 
   Sun, 
   Moon, 
   GraduationCap, 
-  Award, 
   BookOpen, 
-  Users, 
   ChevronDown, 
-  Home, 
   Globe, 
   Lock, 
   HelpCircle,
-  Briefcase,
   Layers,
   Sparkles,
   Calendar,
   Landmark,
   Compass,
-  Clock,
   TrendingUp,
   Building2,
-  User
+  User,
+  LogOut
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -42,14 +39,14 @@ export default function Navbar({
   setPlaceholderMeta 
 }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<"opportunities" | "resources" | "destinations" | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<"resources" | "destinations" | null>(null);
   
   // Mobile accordions
-  const [mobileOppOpen, setMobileOppOpen] = useState(false);
   const [mobileResOpen, setMobileResOpen] = useState(false);
   const [mobileDestOpen, setMobileDestOpen] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user, signOut } = useAuth();
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -75,12 +72,6 @@ export default function Navbar({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Preset loading for Scholarships page
-  const handleScholarshipPreset = (preset: { search?: string; level?: string; category?: string; country?: string }) => {
-    (window as any).scholarshipFilterPreset = preset;
-    handleNavClick("scholarships");
-  };
-
   // Preset loading for Resources page
   const handleResourcePreset = (preset: string) => {
     (window as any).resourcePreset = preset;
@@ -99,274 +90,6 @@ export default function Navbar({
     handleNavClick("placeholder");
   };
 
-  // 1. Opportunities Mega Menu data grouped into logical categories
-  const opportunitiesMegaGroups = [
-    {
-      title: "APPLICANTS",
-      icon: Users,
-      color: "text-blue-500 bg-blue-500/10",
-      items: [
-        { label: "All Applicants", action: () => handleScholarshipPreset({}) },
-        { label: "Women", action: () => handleScholarshipPreset({ category: "Women" }) },
-        { label: "Entrepreneurs", action: () => handleScholarshipPreset({ category: "Entrepreneurs" }) },
-        { 
-          label: "Persons with Disabilities", 
-          action: () => handlePlaceholder(
-            "Opportunities for Persons with Disabilities",
-            "Disabilities",
-            "Explore dedicated global funding, adaptive learning grants, and fully-accessible research residencies supporting individuals with disabilities.",
-            ["DAAD special allowance for disabled students", "Fulbright accessibility support grants", "NGO-supported training stipends in Kathmandu", "Assistive technology procurement awards"],
-            "opportunity"
-          )
-        },
-        { label: "Researchers", action: () => handleScholarshipPreset({ category: "Researchers" }) },
-        { label: "Professionals", action: () => handleScholarshipPreset({ category: "Professionals" }) },
-        { 
-          label: "School Students", 
-          action: () => handlePlaceholder(
-            "Scholarships for School Students",
-            "School",
-            "Find fully funded high school exchanges, science olympiads, and pre-university academic summer camps around the globe.",
-            ["United World Colleges (UWC) Nepal selection", "Kennedy-Lugar Youth Exchange and Study (YES) program", "Global youth summer science camps", "Secondary education certification notary checklists"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Recent Graduates", 
-          action: () => handlePlaceholder(
-            "Opportunities for Recent Graduates",
-            "Graduates",
-            "Kickstart your career with international early-career fellowships, graduate trainee schemes, and paid post-graduation internships.",
-            ["UN Graduate Trainee Programs", "Erasmus Mundus joint master's pipelines", "Global corporate leadership training schemes", "MoEST NOC guides for early-career training"],
-            "opportunity"
-          )
-        }
-      ]
-    },
-    {
-      title: "EDUCATION",
-      icon: GraduationCap,
-      color: "text-indigo-500 bg-indigo-500/10",
-      items: [
-        { label: "Undergraduate", action: () => handleScholarshipPreset({ level: "Undergraduate" }) },
-        { 
-          label: "Diploma", 
-          action: () => handlePlaceholder(
-            "Diploma Opportunities",
-            "Diploma",
-            "Access globally recognized vocational certificates, specialized technical diplomas, and polytechnic scholarships in Europe, Australia, and Canada.",
-            ["Canadian college post-grad diploma pipelines", "Australian TAFE vocational funding", "German dual vocational training (Ausbildung)", "MOEST verification checklists for diploma records"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Short Courses", 
-          action: () => handlePlaceholder(
-            "Fully Funded Short Courses",
-            "Short Courses",
-            "Gain career-enhancing skills with fully sponsored intensive short courses, summer study modules, and executive education tracks.",
-            ["Chevening Professional Fellowships", "Sweden Institute Academy (SIA) training", "Japanese Government Sakura Science exchange", "Professional references (LOR) drafting support"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Training & Certification", 
-          action: () => handlePlaceholder(
-            "Professional Training & Certification",
-            "Training",
-            "Enhance your technical expertise with subsidized bootcamps, certified professional courses, and international trade qualifications.",
-            ["AWS and Google Cloud scholarship credits", "Project Management Professional (PMP) funding", "Kathmandu tech-hub subsidized courses", "Notarization checklists for corporate credentials"],
-            "opportunity"
-          )
-        },
-        { label: "Master's", action: () => handleScholarshipPreset({ level: "Graduate", search: "Master" }) },
-        { label: "PhD", action: () => handleScholarshipPreset({ level: "PhD" }) },
-        { label: "Research", action: () => handleScholarshipPreset({ level: "Research" }) },
-        { 
-          label: "Postdoctoral", 
-          action: () => handlePlaceholder(
-            "Postdoctoral Fellowships",
-            "Postdoctoral",
-            "Unlock advanced research funding, laboratory residency opportunities, and academic post-doc fellowships at elite international institutions.",
-            ["Humboldt Research Fellowships (Germany)", "Marie Skłodowska-Curie Actions (MSCA)", "Fulbright Visiting Scholar programs", "Academic dossier notary guidelines in Kathmandu"],
-            "opportunity"
-          )
-        }
-      ]
-    },
-    {
-      title: "FUNDING",
-      icon: Award,
-      color: "text-amber-500 bg-amber-500/10",
-      items: [
-        { label: "Fully Funded", action: () => handleScholarshipPreset({ search: "Fully Funded" }) },
-        { label: "Partially Funded", action: () => handleScholarshipPreset({ search: "Partial" }) },
-        { label: "Tuition Waiver", action: () => handleScholarshipPreset({ search: "Tuition" }) },
-        { label: "Living Stipend", action: () => handleScholarshipPreset({ search: "Stipend" }) },
-        { label: "Travel Grant", action: () => handleScholarshipPreset({ search: "Travel" }) },
-        { label: "Research Grant", action: () => handleScholarshipPreset({ search: "Research Grant" }) },
-        { 
-          label: "Self-funded Opportunities", 
-          action: () => handlePlaceholder(
-            "Self-Funded Study Options",
-            "Self-funded",
-            "Learn how to structure self-funded or low-tuition study programs, including student jobs, credit transfers, and bank blocked account setups.",
-            ["German university zero-tuition guides", "Blocked account setups for Nepal (Siddhartha, Nabil, etc.)", "On-campus work-study hour limitations and wages", "NOC & student visa financial proof templates"],
-            "opportunity"
-          )
-        }
-      ]
-    },
-    {
-      title: "PROGRAMME TYPE",
-      icon: Briefcase,
-      color: "text-rose-500 bg-rose-500/10",
-      items: [
-        { label: "Scholarships", action: () => handleScholarshipPreset({ search: "Scholarship" }) },
-        { label: "Fellowships", action: () => handleScholarshipPreset({ search: "Fellowship" }) },
-        { label: "Grants", action: () => handleScholarshipPreset({ search: "Grant" }) },
-        { 
-          label: "Internships", 
-          action: () => handlePlaceholder(
-            "Global Internships & Trainee Programs",
-            "Internships",
-            "Step into professional and research training with fully compensated international internships at elite labs and organizations.",
-            ["CERN Summer Student Program directory", "Google STEP and engineering internship tracks", "UN agency internships in Nepal & abroad", "Manager Reference Letter (LOR) frameworks"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Exchange Programmes", 
-          action: () => handlePlaceholder(
-            "Fully Funded Exchange Programs",
-            "Exchange",
-            "Participate in international semester exchanges, cultural youth leadership programs, and short-term study visits.",
-            ["US Department of State exchange programs", "Erasmus+ semester mobility opportunities", "Japanese Government JENESYS program", "Academic credit transfer guidelines"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Conferences", 
-          action: () => handlePlaceholder(
-            "Fully Funded Conference Grants",
-            "Conferences",
-            "Present your research or participate in world-class academic and youth summits with fully sponsored travel and attendance.",
-            ["IEEE travel support options", "One Young World Summit sponsorships", "MoFA travel passport recommendation letter checklist", "Scientific abstract outline builder"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Competitions", 
-          action: () => handlePlaceholder(
-            "Global Student Competitions & Awards",
-            "Competitions",
-            "Win global recognition, capital funding, and fully-funded travel to finals by entering top hackathons and business challenges.",
-            ["Hult Prize and Imagine Cup timetables", "Global climate & tech hackathons", "Abstract & pitch deck outline structures", "Collaborative team registry boards"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Leadership Programmes", 
-          action: () => handlePlaceholder(
-            "Youth Leadership Programs",
-            "Leadership",
-            "Hone your public policy, social entrepreneurship, or community leadership skills in funded residential academies.",
-            ["YSEALI Academic Fellowships", "Chevening Leadership short courses", "Kathmandu social entrepreneurship seed grants", "Outreach project pitch builders"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Volunteer Programmes", 
-          action: () => handlePlaceholder(
-            "Fully Funded Volunteer Schemes",
-            "Volunteer",
-            "Join impactful international and regional development projects with complete flight, stipend, and medical coverage.",
-            ["UN Volunteers (UNV) program options", "Red Cross Youth delegation calls", "Kathmandu social impact volunteering", "Volunteer certification verification"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Summer Schools", 
-          action: () => handlePlaceholder(
-            "International Summer & Winter Schools",
-            "Summer Schools",
-            "Attend prestigious intensive summer/winter schools for high-level coursework, lab access, and intercultural networks.",
-            ["DAAD summer school grants in Germany", "EU Erasmus+ winter schools", "Scientific research paper review tracks", "Short-term study visa application checklists"],
-            "opportunity"
-          )
-        }
-      ]
-    },
-    {
-      title: "DEADLINES & ALERTS",
-      icon: Clock,
-      color: "text-emerald-500 bg-emerald-500/10",
-      items: [
-        { 
-          label: "Closing This Week", 
-          action: () => handlePlaceholder(
-            "Closing This Week Alerts",
-            "Closing Week",
-            "Critical priority countdown for premier scholarships whose applications close within the current week.",
-            ["Urgent document check list", "IELTS score upload guidelines", "Fast-track notary services in Kathmandu", "Real-time deadline timers"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Closing This Month", 
-          action: () => handlePlaceholder(
-            "Closing This Month Alerts",
-            "Closing Month",
-            "A curation of fully funded programs with application submission windows closing within the next 30 days.",
-            ["DAAD / Chevening / MEXT active checks", "SOP and LOR review checkpoints", "MOEST NOC processing schedule", "Embassy visa slot reservation guidance"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Opening Soon", 
-          action: () => handlePlaceholder(
-            "Opening Soon - Pre-registration",
-            "Opening Soon",
-            "Get a headstart on next cycle's fully funded applications. Learn their opening timelines and draft documents early.",
-            ["Fulbright / Chevening annual timetables", "Pre-writing SOP & LOR prompts", "Language test preparation calendars", "Official transcript procurement checklists"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Recently Opened", 
-          action: () => handlePlaceholder(
-            "Recently Opened Programs",
-            "Recently Opened",
-            "Browse newly opened application portals for prestigious global scholarships and research programs.",
-            ["New cycle portal links", "Updated eligibility criteria reviews", "SOP draft review frameworks", "Required document lists"],
-            "opportunity"
-          )
-        },
-        { label: "2026 Intake", action: () => handleScholarshipPreset({ search: "2026" }) },
-        { 
-          label: "2027 Intake", 
-          action: () => handlePlaceholder(
-            "2027 Scholarship Intake",
-            "2027 Intake",
-            "Strategic pre-application guidelines, timeline mappings, and structural preparation for the 2027 academic intake cycles.",
-            ["2027 major scholarship calendars", "Standardized test schedules (GRE, TOEFL, IELTS)", "Document notary and apostille timelines", "Alumni mentorship connections"],
-            "opportunity"
-          )
-        },
-        { 
-          label: "Rolling Admissions", 
-          action: () => handlePlaceholder(
-            "Rolling Admissions Options",
-            "Rolling Admissions",
-            "Explore programs that accept and review applications throughout the year, offering flexible starting dates.",
-            ["Rolling fellowship listings", "Immediate vacancy research positions", "Year-round training grants", "Visa processing turnaround charts"],
-            "opportunity"
-          )
-        }
-      ]
-    }
-  ];
-
   // 2. Destinations Dropdown data grouped into logical geographical clusters
   const destinationsMegaGroups = [
     {
@@ -374,9 +97,9 @@ export default function Navbar({
       icon: Globe,
       color: "text-blue-500 bg-blue-500/10",
       items: [
-        { label: "Australia", action: () => handleScholarshipPreset({ country: "Australia" }) },
-        { label: "United Kingdom", action: () => handleScholarshipPreset({ country: "United Kingdom" }) },
-        { label: "United States", action: () => handleScholarshipPreset({ country: "United States" }) },
+        { label: "Australia", action: () => handleNavClick("scholarships") },
+        { label: "United Kingdom", action: () => handleNavClick("scholarships") },
+        { label: "United States", action: () => handleNavClick("scholarships") },
         { 
           label: "Canada", 
           action: () => handlePlaceholder(
@@ -387,7 +110,7 @@ export default function Navbar({
             "opportunity"
           ) 
         },
-        { label: "Germany", action: () => handleScholarshipPreset({ country: "Germany" }) },
+        { label: "Germany", action: () => handleNavClick("scholarships") },
         { 
           label: "France", 
           action: () => handlePlaceholder(
@@ -505,7 +228,7 @@ export default function Navbar({
             "opportunity"
           ) 
         },
-        { label: "European Union", action: () => handleScholarshipPreset({ search: "Erasmus" }) }
+        { label: "European Union", action: () => handleNavClick("scholarships") }
       ]
     },
     {
@@ -640,10 +363,10 @@ export default function Navbar({
             "opportunity"
           ) 
         },
-        { label: "DAAD", action: () => handleScholarshipPreset({ search: "DAAD" }) },
-        { label: "Chevening", action: () => handleScholarshipPreset({ search: "Chevening" }) },
-        { label: "Fulbright", action: () => handleScholarshipPreset({ search: "Fulbright" }) },
-        { label: "Erasmus+", action: () => handleScholarshipPreset({ search: "Erasmus" }) },
+        { label: "DAAD", action: () => handleNavClick("scholarships") },
+        { label: "Chevening", action: () => handleNavClick("scholarships") },
+        { label: "Fulbright", action: () => handleNavClick("scholarships") },
+        { label: "Erasmus+", action: () => handleNavClick("scholarships") },
         { 
           label: "MEXT", 
           action: () => handlePlaceholder(
@@ -706,52 +429,44 @@ export default function Navbar({
       desc: "Visa and application guidelines mapped by country." 
     },
     { 
+      label: "University Explorer", 
+      action: () => handleNavClick("university-explorer"), 
+      desc: "Browse verified universities with rankings and tuition." 
+    },
+    { 
       label: "Scholarship Calendar", 
-      action: () => handlePlaceholder(
-        "Nepali Student Scholarship Calendar",
-        "Calendar",
-        "A consolidated timeline mapping out opening and closing dates for major annual scholarship schemes (Fulbright, Chevening, DAAD, MEXT).",
-        ["Chronological opening/closing calendars", "Automatic Google Calendar syncing", "Keshar Mahal NOC queuing guidelines", "Document translation & stamp deadlines"],
-        "resource"
-      ),
+      action: () => handleNavClick("scholarship-calendar"), 
       desc: "Chronological opening and deadline calendars." 
     },
     { 
+      label: "University Comparison", 
+      action: () => handleNavClick("university-comparison"), 
+      desc: "Compare universities side by side across key criteria." 
+    },
+    { 
       label: "SOP Builder", 
-      action: () => handleResourcePreset("res-sop"), 
+      action: () => handleNavClick("sop-builder"), 
       desc: "Smart paragraph builder for Statements of Purpose." 
     },
     { 
       label: "LOR Builder", 
-      action: () => handleResourcePreset("res-lor"), 
+      action: () => handleNavClick("lor-builder"), 
       desc: "Academic & Professional Reference letter frameworks." 
     },
     { 
       label: "CV Builder", 
-      action: () => handlePlaceholder(
-        "Academic CV & Resume Builder",
-        "CV",
-        "A structured, LaTeX-compatible resume outline optimized to meet the strict ATS scanning requirements of foreign scholarship review boards.",
-        ["Harvard & MIT style resume templates", "Action verb guidelines for academic output", "Nepali grading system GPA converters", "Automatic PDF export with custom sections"],
-        "resource"
-      ),
+      action: () => handleNavClick("cv-builder"),
       desc: "ATS-optimized curriculum vitae structures." 
     },
     { 
-      label: "Motivation Letter Guide", 
-      action: () => handlePlaceholder(
-        "Motivation Letter Blueprint",
-        "Motivation Letter",
-        "Master the art of writing compelling motivation statements that demonstrate community leadership and academic merit.",
-        ["Structuring successful narrative hooks", "Quantifying social impact achievements", "Addressing study gaps and backlogs in Nepal transcripts", "5 full-text approved samples of successful awardees"],
-        "resource"
-      ),
-      desc: "Paragraph-by-paragraph narrative formulas." 
+      label: "Motivation Letter Builder", 
+      action: () => handleNavClick("motivation-letter-builder"), 
+      desc: "Interactive writing coach for scholarship and admission letters." 
     },
     { 
-      label: "Visa Guide", 
-      action: () => handleResourcePreset("res-checklist"), 
-      desc: "MoFA and MOEST Keshar Mahal attestation timelines." 
+      label: "Visa Preparation Hub", 
+      action: () => handleNavClick("visa-prep"), 
+      desc: "Country-by-country visa overview, documents, and checklist." 
     },
     { 
       label: "Interview Tips", 
@@ -779,27 +494,49 @@ export default function Navbar({
       label: "Frequently Asked Questions", 
       action: () => handleNavClick("faq"), 
       desc: "Quick answers to NOC and blocked account queries." 
+    },
+    { 
+      label: "Legal & Notarial Service", 
+      action: () => handleNavClick("resources"), 
+      desc: "Certified translation and attestation support — coming soon." 
     }
   ];
 
+  // Shared class strings — kept in one place so nav-item styling never drifts
+  // out of sync again. "Active" = gold accent (this is where you are).
+  // "Hover" = navy (matches primary brand color, distinct from active state).
+  const navItemClass = (active: boolean) =>
+    `px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
+      active
+        ? "text-nepal-blue dark:text-nepal-gold bg-nepal-gold/10 dark:bg-nepal-gold/10"
+        : "text-slate-600 dark:text-slate-300 hover:text-nepal-blue dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40"
+    }`;
+
+  const mobileNavItemClass = (active: boolean) =>
+    `w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold transition-all ${
+      active
+        ? "text-nepal-blue dark:text-nepal-gold bg-nepal-gold/10 dark:bg-nepal-gold/10"
+        : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/40"
+    }`;
+
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 transition-colors duration-300">
-      {/* Red & Blue Top Accent Strip (Nepali Flag Theme) */}
-      <div className="h-1.5 w-full bg-gradient-to-r from-nepal-crimson via-nepal-blue to-nepal-gold" />
+      {/* Two-tone accent strip — navy to gold, matches the simplified brand palette */}
+      <div className="h-1.5 w-full bg-gradient-to-r from-nepal-blue to-nepal-gold" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           
           {/* Logo Brand */}
           <div className="flex-shrink-0 flex items-center gap-2 cursor-pointer" onClick={() => handleNavClick("home")}>
-            <div className="relative p-2 bg-gradient-to-tr from-nepal-crimson to-nepal-blue rounded-xl text-white shadow-md">
+            <div className="relative p-2 bg-gradient-to-tr from-nepal-blue to-nepal-blue-light rounded-xl text-white shadow-md">
               <GraduationCap className="h-6 w-6" />
               <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-nepal-gold rounded-full animate-ping" />
               <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-nepal-gold rounded-full" />
             </div>
             <div>
               <span className="text-xl font-extrabold tracking-tight text-nepal-blue dark:text-white flex items-center">
-                KIPLAN<span className="text-nepal-crimson dark:text-nepal-crimson-light">Scholar</span>
+                KIPLAN<span className="text-nepal-gold-dark dark:text-nepal-gold">Scholar</span>
               </span>
               <p className="text-[9px] uppercase tracking-widest font-bold text-slate-400 dark:text-slate-500 -mt-1 font-mono">
                 Nepali Student Portal
@@ -810,85 +547,26 @@ export default function Navbar({
           {/* Desktop Navigation Links */}
           <div className="hidden lg:flex items-center space-x-1" ref={dropdownRef}>
             
-            {/* Home */}
+            {/* Opportunities — direct link to the Opportunity Explorer page.
+                Previously a mega-menu dropdown duplicating Applicants /
+                Education / Funding / Programme Type / Deadlines filters
+                that now live on that page itself via the horizontal
+                FilterBar (Applicants, Education, Funding, Programme Type,
+                Deadline, Search, More Filters). Single click, no dropdown. */}
             <button
-              onClick={() => handleNavClick("home")}
-              className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
-                currentTab === "home"
-                  ? "text-nepal-crimson dark:text-nepal-crimson-light bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10"
-                  : "text-slate-600 dark:text-slate-300 hover:text-nepal-blue dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40"
-              }`}
+              onClick={() => handleNavClick("scholarships")}
+              className={navItemClass(
+                currentTab === "opportunities" || currentTab === "scholarships" || currentTab === "women" || currentTab === "entrepreneurs"
+              )}
             >
-              <Home className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
-              <span>Home</span>
+              <Globe className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
+              <span>Opportunities</span>
             </button>
-
-            {/* Opportunities Mega Menu Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setActiveDropdown(activeDropdown === "opportunities" ? null : "opportunities")}
-                className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
-                  currentTab === "opportunities" || currentTab === "scholarships" || currentTab === "women" || currentTab === "entrepreneurs"
-                    ? "text-nepal-crimson dark:text-nepal-crimson-light bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10"
-                    : "text-slate-600 dark:text-slate-300 hover:text-nepal-blue dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40"
-                }`}
-              >
-                <Globe className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
-                <span>Opportunities</span>
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${activeDropdown === "opportunities" ? "rotate-180" : ""}`} />
-              </button>
-
-              <AnimatePresence>
-                {activeDropdown === "opportunities" && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                    transition={{ duration: 0.15, ease: "easeOut" }}
-                    className="absolute left-1/2 -translate-x-[38%] mt-2 w-[980px] bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-2xl p-6 grid grid-cols-5 gap-5 z-50 text-left"
-                  >
-                    {opportunitiesMegaGroups.map((group, gIdx) => {
-                      const IconComponent = group.icon;
-                      return (
-                        <div key={gIdx} className="space-y-4">
-                          <div className="flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800/80">
-                            <div className={`p-1.5 rounded-lg ${group.color} shrink-0`}>
-                              <IconComponent className="h-3.5 w-3.5 text-slate-700 dark:text-white" />
-                            </div>
-                            <span className="text-[10px] uppercase tracking-widest font-black text-slate-400 dark:text-slate-500 font-mono">
-                              {group.title}
-                            </span>
-                          </div>
-                          <div className="flex flex-col space-y-1.5">
-                            {group.items.map((item, itemIdx) => (
-                              <button
-                                key={itemIdx}
-                                onClick={() => {
-                                  item.action();
-                                  setActiveDropdown(null);
-                                }}
-                                className="w-full text-left py-1 px-2 text-[11.5px] font-semibold text-slate-600 dark:text-slate-400 hover:text-nepal-crimson dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-lg transition-all cursor-pointer"
-                              >
-                                {item.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
 
             {/* My Eligibility */}
             <button
               onClick={() => handleNavClick("eligibility")}
-              className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
-                currentTab === "eligibility"
-                  ? "text-nepal-crimson dark:text-nepal-crimson-light bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10"
-                  : "text-slate-600 dark:text-slate-300 hover:text-nepal-blue dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40"
-              }`}
+              className={navItemClass(currentTab === "eligibility")}
             >
               <TrendingUp className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
               <span>My Eligibility</span>
@@ -897,11 +575,7 @@ export default function Navbar({
             {/* Organizations */}
             <button
               onClick={() => handleNavClick("organizations")}
-              className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
-                currentTab === "organizations"
-                  ? "text-nepal-crimson dark:text-nepal-crimson-light bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10"
-                  : "text-slate-600 dark:text-slate-300 hover:text-nepal-blue dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40"
-              }`}
+              className={navItemClass(currentTab === "organizations")}
             >
               <Building2 className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
               <span>Organizations</span>
@@ -911,11 +585,7 @@ export default function Navbar({
             <div className="relative">
               <button
                 onClick={() => setActiveDropdown(activeDropdown === "resources" ? null : "resources")}
-                className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
-                  currentTab === "resources" || currentTab === "faq"
-                    ? "text-nepal-crimson dark:text-nepal-crimson-light bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10"
-                    : "text-slate-600 dark:text-slate-300 hover:text-nepal-blue dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40"
-                }`}
+                className={navItemClass(currentTab === "resources" || currentTab === "faq")}
               >
                 <BookOpen className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
                 <span>Resources</span>
@@ -929,7 +599,7 @@ export default function Navbar({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.98 }}
                     transition={{ duration: 0.15, ease: "easeOut" }}
-                    className="absolute right-[-80px] mt-2 w-[480px] bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-xl p-4 grid grid-cols-2 gap-2 z-50 text-left"
+                    className="absolute right-[-80px] mt-2 w-[640px] max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-xl p-5 grid grid-cols-3 gap-3 z-50 text-left"
                   >
                     {resourcesItems.map((item, idx) => (
                       <button
@@ -938,12 +608,12 @@ export default function Navbar({
                           item.action();
                           setActiveDropdown(null);
                         }}
-                        className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-800/50 group"
+                        className="w-full text-left p-3.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-800/50 group"
                       >
-                        <div className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-nepal-crimson dark:group-hover:text-nepal-crimson-light">
+                        <div className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-nepal-blue dark:group-hover:text-nepal-gold leading-snug">
                           {item.label}
                         </div>
-                        <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 leading-normal font-medium">
+                        <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 leading-relaxed font-medium">
                           {item.desc}
                         </div>
                       </button>
@@ -956,28 +626,30 @@ export default function Navbar({
             {/* About */}
             <button
               onClick={() => handleNavClick("about")}
-              className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
-                currentTab === "about"
-                  ? "text-nepal-crimson dark:text-nepal-crimson-light bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10"
-                  : "text-slate-600 dark:text-slate-300 hover:text-nepal-blue dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40"
-              }`}
+              className={navItemClass(currentTab === "about")}
             >
               <HelpCircle className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
               <span>About</span>
             </button>
 
-            {/* Dashboard */}
-            <button
-              onClick={() => handleNavClick("dashboard")}
-              className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
-                currentTab === "dashboard"
-                  ? "text-nepal-crimson dark:text-nepal-crimson-light bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10"
-                  : "text-slate-600 dark:text-slate-300 hover:text-nepal-blue dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40"
-              }`}
-            >
-              <User className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
-              <span>Dashboard</span>
-            </button>
+            {/* My Workspace — single concept replacing the former Dashboard/My Dashboard pair (ES-006C nav refinement) */}
+            {user ? (
+              <button
+                onClick={() => handleNavClick("workspace")}
+                className={navItemClass(currentTab === "workspace")}
+              >
+                <User className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
+                <span>My Workspace</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => handleNavClick("login")}
+                className={navItemClass(currentTab === "login" || currentTab === "register")}
+              >
+                <Lock className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
+                <span>My Workspace</span>
+              </button>
+            )}
 
           </div>
 
@@ -993,14 +665,36 @@ export default function Navbar({
               {isDarkMode ? <Sun className="h-4.5 w-4.5 text-amber-500" /> : <Moon className="h-4.5 w-4.5 text-slate-500" />}
             </button>
 
-            {/* Supabase Ready Authentication Button */}
-            <button
-              onClick={() => alert("Supabase Student Authentication Portal launching in upcoming roadmap release. Join waitlist on our home page or placeholder pages.")}
-              className="hidden md:inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#102B5C] to-[#1D4A93] dark:from-nepal-crimson dark:to-[#F42E56] hover:opacity-95 text-white font-semibold text-sm rounded-xl shadow-md transition-all duration-300 cursor-pointer transform active:scale-95 shrink-0"
-            >
-              <Lock className="h-3.5 w-3.5" />
-              <span>Login / Register</span>
-            </button>
+            {/* Authentication Button(s) — Desktop */}
+            {user ? (
+              <div className="hidden md:flex items-center gap-2 shrink-0">
+                <button
+                  onClick={async () => {
+                    await signOut();
+                    handleNavClick("home");
+                  }}
+                  className="btn-ghost !px-4 !py-2 !text-sm"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <div className="hidden md:flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => handleNavClick("login")}
+                  className="btn-ghost !border-0 !px-4 !py-2 !text-sm"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => handleNavClick("register")}
+                  className="btn-primary !px-4 !py-2 !text-sm"
+                >
+                  Register
+                </button>
+              </div>
+            )}
 
             {/* Mobile Hamburger Menu Button */}
             <button
@@ -1014,7 +708,9 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Mobile Drawer (AnimatePresence) */}
+      {/* Mobile Drawer (AnimatePresence) — Home item removed: the logo already
+          navigates home, and low-res screens need the vertical space more
+          than a redundant nav item. */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -1025,67 +721,24 @@ export default function Navbar({
             className="lg:hidden border-t border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950 overflow-y-auto max-h-[calc(100vh-4rem)]"
           >
             <div className="px-4 pt-2 pb-6 space-y-1.5 text-left">
-              
-              {/* Home */}
-              <button
-                onClick={() => handleNavClick("home")}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold transition-all ${
-                  currentTab === "home"
-                    ? "text-nepal-crimson dark:text-nepal-crimson-light bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/40"
-                }`}
-              >
-                <Home className="h-5 w-5 shrink-0 text-slate-400" />
-                <span>Home</span>
-              </button>
 
-              {/* Opportunities Accordion Toggle */}
-              <div className="space-y-1">
-                <button
-                  onClick={() => setMobileOppOpen(!mobileOppOpen)}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-base font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/40"
-                >
-                  <div className="flex items-center gap-3">
-                    <Globe className="h-5 w-5 text-slate-400 shrink-0" />
-                    <span>Opportunities</span>
-                  </div>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${mobileOppOpen ? "rotate-180" : ""}`} />
-                </button>
-                {mobileOppOpen && (
-                  <div className="pl-6 space-y-4 border-l border-slate-150 dark:border-slate-800 ml-6 py-2">
-                    {opportunitiesMegaGroups.map((group, idx) => (
-                      <div key={idx} className="space-y-1">
-                        <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 font-mono pl-2">
-                          {group.title}
-                        </div>
-                        <div className="grid grid-cols-1 gap-1">
-                          {group.items.map((item, itemIdx) => (
-                            <button
-                              key={itemIdx}
-                              onClick={() => {
-                                item.action();
-                                setIsOpen(false);
-                              }}
-                              className="w-full text-left py-1.5 px-2 rounded-lg text-xs font-semibold text-slate-500 hover:text-nepal-crimson dark:text-slate-400 dark:hover:text-white"
-                            >
-                              {item.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              {/* Opportunities — direct link, same simplification as desktop.
+                  No accordion, no mega menu: single tap to the Opportunity
+                  Explorer page, where the FilterBar now handles filtering. */}
+              <button
+                onClick={() => handleNavClick("scholarships")}
+                className={mobileNavItemClass(
+                  currentTab === "opportunities" || currentTab === "scholarships" || currentTab === "women" || currentTab === "entrepreneurs"
                 )}
-              </div>
+              >
+                <Globe className="h-5 w-5 shrink-0 text-slate-400" />
+                <span>Opportunities</span>
+              </button>
 
               {/* My Eligibility */}
               <button
                 onClick={() => handleNavClick("eligibility")}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold transition-all ${
-                  currentTab === "eligibility"
-                    ? "text-nepal-crimson dark:text-nepal-crimson-light bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/40"
-                }`}
+                className={mobileNavItemClass(currentTab === "eligibility")}
               >
                 <TrendingUp className="h-5 w-5 shrink-0 text-slate-400" />
                 <span>My Eligibility</span>
@@ -1094,11 +747,7 @@ export default function Navbar({
               {/* Organizations */}
               <button
                 onClick={() => handleNavClick("organizations")}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold transition-all ${
-                  currentTab === "organizations"
-                    ? "text-nepal-crimson dark:text-nepal-crimson-light bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/40"
-                }`}
+                className={mobileNavItemClass(currentTab === "organizations")}
               >
                 <Building2 className="h-5 w-5 shrink-0 text-slate-400" />
                 <span>Organizations</span>
@@ -1125,7 +774,7 @@ export default function Navbar({
                           item.action();
                           setIsOpen(false);
                         }}
-                        className="w-full text-left py-2 px-3 rounded-lg text-xs font-semibold text-slate-500 hover:text-nepal-crimson dark:text-slate-400 dark:hover:text-white"
+                        className="w-full text-left py-2 px-3 rounded-lg text-xs font-semibold text-slate-500 hover:text-nepal-blue dark:text-slate-400 dark:hover:text-nepal-gold"
                       >
                         {item.label}
                       </button>
@@ -1137,38 +786,55 @@ export default function Navbar({
               {/* About */}
               <button
                 onClick={() => handleNavClick("about")}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold transition-all ${
-                  currentTab === "about"
-                    ? "text-nepal-crimson dark:text-nepal-crimson-light bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/40"
-                }`}
+                className={mobileNavItemClass(currentTab === "about")}
               >
                 <HelpCircle className="h-5 w-5 shrink-0 text-slate-400" />
                 <span>About</span>
               </button>
 
-              {/* Dashboard */}
-              <button
-                onClick={() => handleNavClick("dashboard")}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold transition-all ${
-                  currentTab === "dashboard"
-                    ? "text-nepal-crimson dark:text-nepal-crimson-light bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/40"
-                }`}
-              >
-                <User className="h-5 w-5 shrink-0 text-slate-400" />
-                <span>Dashboard</span>
-              </button>
-
-              {/* Login / Register Mobile */}
-              <div className="pt-4 px-4">
+              {/* My Workspace — single concept replacing the former Dashboard/My Dashboard pair (ES-006C nav refinement) */}
+              {user ? (
                 <button
-                  onClick={() => alert("Supabase Student Authentication Portal launching in upcoming roadmap release. Join waitlist on our home page or placeholder pages.")}
-                  className="w-full py-3 bg-gradient-to-r from-nepal-blue to-[#1D4A93] text-white rounded-xl font-bold shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2"
+                  onClick={() => handleNavClick("workspace")}
+                  className={mobileNavItemClass(currentTab === "workspace")}
                 >
-                  <Lock className="h-4.5 w-4.5" />
-                  <span>Login / Register Portal</span>
+                  <User className="h-5 w-5 shrink-0 text-slate-400" />
+                  <span>My Workspace</span>
                 </button>
+              ) : (
+                <button
+                  onClick={() => handleNavClick("login")}
+                  className={mobileNavItemClass(currentTab === "login" || currentTab === "register")}
+                >
+                  <Lock className="h-5 w-5 shrink-0 text-slate-400" />
+                  <span>My Workspace</span>
+                </button>
+              )}
+
+              {/* Authentication Button(s) — Mobile */}
+              <div className="pt-4 px-4 space-y-2">
+                {user ? (
+                  <>
+                    <button
+                      onClick={async () => {
+                        await signOut();
+                        handleNavClick("home");
+                      }}
+                      className="btn-ghost w-full !py-3 font-bold"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => handleNavClick("login")}
+                    className="btn-primary w-full !py-3 font-bold"
+                  >
+                    <Lock className="h-4 w-4" />
+                    <span>Login / Register Portal</span>
+                  </button>
+                )}
               </div>
 
             </div>

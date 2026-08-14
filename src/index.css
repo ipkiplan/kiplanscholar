@@ -2,20 +2,33 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  /* Typography — Outfit for headings (distinctive, premium, geometric),
+     Inter for body/UI (highly legible). Poppins removed — it was never
+     loaded, so it was silently falling back anyway. */
+  --font-heading: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --color-nepal-blue: #0A1C40;
-  --color-nepal-blue-light: #1A346C;
-  --color-nepal-crimson: #DC143C;
-  --color-nepal-crimson-light: #F42E56;
-  --color-nepal-gold: #E2B13C;
-  --color-nepal-gold-light: #F1C40F;
-  --color-nepal-slate: #F8F9FC;
-  --color-nepal-dark: #071126;
-  
+  /* --- Brand: ONE primary + ONE accent --- */
+  --color-nepal-blue: #1E3A8A;        /* primary — nav, headings, body text on light bg */
+  --color-nepal-blue-light: #2563EB;  /* primary hover / links */
+  --color-nepal-blue-dark: #14265E;   /* primary pressed / dark surfaces */
+
+  --color-nepal-gold: #E2B13C;        /* accent — ALL primary CTAs, active states */
+  --color-nepal-gold-light: #F1C40F;  /* accent hover */
+  --color-nepal-gold-dark: #B8871F;   /* accent pressed */
+
+  /* --- Semantic (not brand) colors — used sparingly, purpose-driven only --- */
+  --color-urgent: #DC143C;            /* deadline tags, delete/destructive actions ONLY */
+  --color-urgent-light: #F42E56;
+  --color-success: #16A34A;           /* success toasts, verified badges */
+  --color-warning: #D97706;           /* warning states */
+
+  --color-nepal-slate: #F8F9FC;       /* light surface */
+  --color-nepal-dark: #071126;        /* dark surface */
+
   --shadow-premium: 0 10px 30px -10px rgba(10, 28, 64, 0.08);
-  --shadow-premium-hover: 0 20px 40px -15px rgba(220, 20, 60, 0.12);
+  --shadow-premium-hover: 0 20px 40px -15px rgba(30, 58, 138, 0.16);
   --shadow-dark-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
@@ -24,9 +37,62 @@
     scroll-behavior: smooth;
     font-family: var(--font-sans);
   }
-  
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+
   body {
     @apply transition-colors duration-300;
+  }
+}
+
+@layer components {
+  /* --- Unified button system: use these everywhere instead of ad-hoc bg-red-500 etc --- */
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg
+           bg-nepal-gold text-nepal-dark font-semibold
+           px-5 py-2.5 shadow-premium
+           transition-all duration-200
+           hover:bg-nepal-gold-light hover:shadow-premium-hover hover:-translate-y-0.5
+           active:translate-y-0 active:bg-nepal-gold-dark;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg
+           bg-nepal-blue text-white font-semibold
+           px-5 py-2.5
+           transition-all duration-200
+           hover:bg-nepal-blue-light hover:-translate-y-0.5
+           active:translate-y-0 active:bg-nepal-blue-dark;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg
+           border border-nepal-blue/20 text-nepal-blue font-semibold
+           px-5 py-2.5 bg-transparent
+           transition-all duration-200
+           hover:bg-nepal-blue/5 hover:border-nepal-blue/40;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg
+           bg-urgent text-white font-semibold
+           px-5 py-2.5
+           transition-all duration-200
+           hover:bg-urgent-light hover:-translate-y-0.5;
+  }
+
+  /* --- Badges --- */
+  .badge-verified {
+    @apply inline-flex items-center gap-1 rounded-full bg-success/10 text-success
+           text-xs font-medium px-2.5 py-1;
+  }
+
+  .badge-urgent {
+    @apply inline-flex items-center gap-1 rounded-full bg-urgent/10 text-urgent
+           text-xs font-medium px-2.5 py-1;
   }
 }
 
@@ -35,7 +101,9 @@
   @apply bg-white/85 dark:bg-nepal-dark/85 backdrop-blur-md border border-slate-100 dark:border-slate-800/50;
 }
 
+/* Two-stop gradient (navy -> gold) instead of three-color navy/crimson/gold —
+   cleaner, and matches the simplified accent system above. */
 .gradient-text {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-nepal-blue via-nepal-crimson to-nepal-gold dark:from-white dark:via-nepal-crimson-light dark:to-nepal-gold;
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-nepal-blue to-nepal-gold-dark
+         dark:from-white dark:to-nepal-gold;
 }
-

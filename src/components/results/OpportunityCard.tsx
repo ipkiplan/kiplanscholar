@@ -14,7 +14,7 @@ import {
   Layers,
 } from "lucide-react";
 import { EnrichedOpportunity } from "./types";
-import StatusBadge from "./StatusBadge";
+import StatusBadge, { OpportunityStatus } from "./StatusBadge";
 import CountryBadge from "./CountryBadge";
 import EducationBadge from "./EducationBadge";
 import FundingBadge from "./FundingBadge";
@@ -139,7 +139,7 @@ export default function OpportunityCard({
           </span>
           <EducationBadge level={opportunity.educationLevel} />
           <FundingBadge funding={opportunity.funding} />
-          <StatusBadge status={opportunity.status} daysRemaining={opportunity.daysRemaining} />
+          <StatusBadge status={opportunity.status as OpportunityStatus} daysRemaining={opportunity.daysRemaining} />
         </div>
 
         {/* Brief description */}

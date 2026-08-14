@@ -1,11 +1,140 @@
-import React from "react";
-import { 
-  Compass, Award, ArrowDown 
-} from "lucide-react";
+import React, { useState } from "react";
+import { ArrowDown, ChevronDown, ChevronUp } from "lucide-react";
 import { motion } from "motion/react";
+import { FOUNDER_CHAPTERS, type ChapterImage } from "../data/founderChapters";
 
 interface AboutProps {
   setCurrentTab?: (tab: string) => void;
+}
+
+function ChapterCard({
+  number,
+  title,
+  preview,
+  fullText,
+  images,
+  imageSide = "left",
+  index,
+}: {
+  number: number;
+  title: string;
+  preview: string;
+  fullText: string[];
+  images?: ChapterImage[];
+  imageSide?: "left" | "right";
+  index: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const hasImages = images && images.length > 0;
+  const [primaryImage, ...supportingImages] = images ?? [];
+
+  // Text column, shared between the image-and-text and text-only layouts.
+  const textColumn = (
+    <div className={hasImages ? "flex flex-col h-full" : ""}>
+      <div className="flex items-start gap-4">
+        <span className="shrink-0 mt-1 flex items-center justify-center w-9 h-9 rounded-full bg-nepal-crimson/10 dark:bg-nepal-crimson-light/10 text-nepal-crimson dark:text-nepal-crimson-light font-black text-sm font-mono">
+          {number}
+        </span>
+        <div className="min-w-0">
+          <h3 className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white tracking-tight">
+            {title}
+          </h3>
+        </div>
+      </div>
+
+      <div className="mt-5 text-slate-600 dark:text-slate-300 text-[15px] leading-relaxed space-y-4">
+        <p>{preview}</p>
+
+        {expanded && (
+          <div className="space-y-4 pt-1 border-t border-slate-100 dark:border-slate-800/60 mt-2">
+            {fullText.map((paragraph, i) => (
+              <p key={i} className="pt-3 first:pt-4">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setExpanded((prev) => !prev)}
+        aria-expanded={expanded}
+        className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-nepal-blue dark:text-sky-400 hover:text-nepal-crimson dark:hover:text-nepal-crimson-light transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-nepal-blue/50 rounded-md px-1 -mx-1"
+      >
+        {expanded ? (
+          <>
+            Show less <ChevronUp className="h-4 w-4" />
+          </>
+        ) : (
+          <>
+            Read more <ChevronDown className="h-4 w-4" />
+          </>
+        )}
+      </button>
+    </div>
+  );
+
+  // Image column: single hero-style photo filling the full column height
+  // (matching the text column via items-stretch on the parent grid), or
+  // (Chapter 9 only) a primary photo that grows to fill available space
+  // with two smaller supporting photos fixed beneath it. object-cover
+  // crops to fill without distorting the subject.
+  const imageColumn = hasImages && (
+    <div className="flex flex-col h-full min-h-[280px] lg:min-h-0 gap-3">
+      <div className="flex-1 overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-800 shadow-lg min-h-0">
+        <img
+          src={primaryImage.src}
+          alt={primaryImage.alt}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      {supportingImages.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 h-24 sm:h-28 shrink-0">
+          {supportingImages.map((img, i) => (
+            <div
+              key={i}
+              className="overflow-hidden rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-sm"
+            >
+              <img src={img.src} alt={img.alt} className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.4, delay: Math.min(index * 0.04, 0.3) }}
+      className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 shadow-sm p-6 sm:p-8"
+    >
+      {hasImages ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-stretch">
+          {/* Mobile: image always first, regardless of desktop side.
+              Desktop: order + column-span follow the approved
+
+              alternating imageSide. col-span must live on these direct
+              grid children, not on nested content divs. */}
+          <div
+            className={`lg:col-span-5 ${imageSide === "left" ? "order-1 lg:order-1" : "order-1 lg:order-2"}`}
+          >
+            {imageColumn}
+          </div>
+          <div
+            className={`lg:col-span-7 ${imageSide === "left" ? "order-2 lg:order-2" : "order-2 lg:order-1"}`}
+          >
+            {textColumn}
+          </div>
+        </div>
+      ) : (
+        textColumn
+      )}
+    </motion.div>
+  );
 }
 
 export default function About({ setCurrentTab }: AboutProps) {
@@ -13,25 +142,6 @@ export default function About({ setCurrentTab }: AboutProps) {
     const section = document.getElementById("my-journey-section");
     if (section) section.scrollIntoView({ behavior: "smooth" });
   };
-
-  const handleNavClick = (tab: string) => {
-    if (setCurrentTab) {
-      setCurrentTab(tab);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  // Timeline items
-  const timelineItems = [
-    { year: "Pre-2008", title: "Nepal", desc: "Laying the foundation of academic and legal ambition in Kathmandu, Nepal..." },
-    { year: "2008", title: "Applied for international scholarship", desc: "Personally navigated the complex, scattered application directories..." },
-    { year: "2008-2009", title: "Awarded Endeavour Award Australia", desc: "Selected for the prestigious Endeavour Award..." },
-    { year: "2009", title: "Studied at the University of Canberra", desc: "Completed advanced legal and professional studies..." },
-    { year: "2010", title: "Returned to Nepal", desc: "Repatriated to Nepal with a vision..." },
-    { year: "2010-Present", title: "Professional legal career", desc: "Advocated for education, corporate transparency..." },
-    { year: "2018", title: "Founded KIPLAN Law & Notary", desc: "Established a trusted legal and notary office..." },
-    { year: "2024", title: "Created KIPLANScholar", desc: "Synthesized educational passion and legal integrity..." }
-  ];
 
   return (
     <div className="bg-slate-50 dark:bg-[#071126] transition-colors duration-300">
@@ -44,8 +154,8 @@ export default function About({ setCurrentTab }: AboutProps) {
           <div className="lg:col-span-5 relative group">
             <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl bg-white dark:bg-slate-950 p-3">
               <img
-                src="/assets/images/Founder-2008.jpg"
-                alt="Adv. Kamal Khadka"
+                src="/assets/images/founder-2010.png"
+                alt="Kamal Khadka"
                 className="rounded-2xl object-cover w-full aspect-[4/4.5] transition-all duration-700 hover:scale-105"
               />
             </div>
@@ -53,15 +163,18 @@ export default function About({ setCurrentTab }: AboutProps) {
 
           <div className="lg:col-span-7 space-y-6">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-nepal-crimson dark:text-nepal-crimson-light font-mono">LEADERSHIP & VISION</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-nepal-crimson dark:text-nepal-crimson-light font-mono">FOUNDER'S STORY</p>
               <h2 className="text-4xl font-black text-slate-950 dark:text-white tracking-tight">Meet the Founder</h2>
-              <p className="text-2xl font-semibold text-nepal-blue">Adv. Kamal Khadka</p>
+              <p className="text-2xl font-semibold text-nepal-blue">Kamal Khadka</p>
+              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1">
+                AI Practitioner | HRM Specialist
+              </p>
             </div>
 
             <div className="text-slate-600 dark:text-slate-300 text-[15px] leading-relaxed space-y-4">
-              <p>Adv. Kamal Khadka is a distinguished legal practitioner and advocate in Kathmandu, Nepal, whose life was profoundly transformed by international education.</p>
-              <p>As a recipient of the prestigious Endeavour Award (2008–2009), he pursued postgraduate studies at the University of Canberra.</p>
-              <p>Upon returning to Nepal, he founded KIPLANScholar to empower Nepali students with verified global opportunities.</p>
+              <p>Today's AI technology is opening new opportunities for hundreds of thousands of people who previously had limited access to information, learning and connection.</p>
+              <p>I first saw a computer screen in 1995 while working with United Mission to Nepal. My own journey since then — from a remote district in Bhojpur, through an international scholarship in Australia, to a career spent building HR systems and national health workforce plans in Nepal — is the reason I understand how much reliable information and preparation can matter to a student's future.</p>
+              <p>KIPLANScholar is my attempt to bring that same reliable information closer to Nepali students, professionals and entrepreneurs today.</p>
             </div>
 
             <button
@@ -75,71 +188,32 @@ export default function About({ setCurrentTab }: AboutProps) {
         </div>
       </section>
 
-      {/* SECTION 3 — MY JOURNEY (Bigger Photo) */}
+      {/* SECTION 3 — MY JOURNEY: 15-chapter founder story */}
       <section id="my-journey-section" className="py-20 bg-white dark:bg-slate-950 border-y border-slate-200/50 dark:border-slate-800/40">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
           <div className="text-center space-y-3">
             <span className="text-xs font-bold uppercase tracking-widest text-nepal-crimson">FROM KATHMANDU TO CANBERRA AND BACK</span>
             <h2 className="text-4xl font-black">My Journey</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
-            {/* Bigger Endeavour Award Photo */}
-            <div className="md:col-span-5">
-              <div className="overflow-hidden rounded-3xl border border-slate-200 shadow-xl">
-                <img
-                  src="/assets/images/endeavour_award.jpg"
-                  alt="Endeavour Award"
-                  className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
-                />
-              </div>
-            </div>
-
-            {/* Timeline */}
-            <div className="md:col-span-7 space-y-10 relative pl-8 border-l-2 border-nepal-crimson/30">
-              {timelineItems.map((item, idx) => (
-                <div key={idx} className="relative">
-                  <div className="absolute -left-[33px] top-1 w-5 h-5 bg-white border-4 border-nepal-crimson rounded-full" />
-                  <div>
-                    <span className="text-xs font-bold text-nepal-crimson">{item.year}</span>
-                    <h3 className="font-bold text-lg mt-1">{item.title}</h3>
-                    <p className="text-slate-600 mt-2">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="space-y-6">
+            {FOUNDER_CHAPTERS.map((chapter, index) => (
+              <ChapterCard
+                key={chapter.number}
+                number={chapter.number}
+                title={chapter.title}
+                preview={chapter.preview}
+                fullText={chapter.fullText}
+                images={chapter.images}
+                imageSide={chapter.imageSide}
+                index={index}
+              />
+            ))}
           </div>
         </div>
       </section>
 
       {/* SECTIONS 4 TO 7 — Keep as they are */}
-
-      {/* SECTION 8 — FAMILY INSPIRATION (Bigger Photo) */}
-      <section className="py-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
-          <div className="md:col-span-7 space-y-6">
-            <span className="text-xs font-bold uppercase tracking-wider text-nepal-crimson">THE CORE DRIVE</span>
-            <h2 className="text-4xl font-black">The Inspiration Behind the Mission</h2>
-            
-            <div className="text-slate-600 leading-relaxed space-y-4 text-[15px]">
-              <p>The foundations of KIPLANScholar are rooted in the timeless values of <strong>academic perseverance, integrity, and profound family support</strong>.</p>
-              <p>Just as families support their sons and daughters through the grueling stages of competitive national examinations...</p>
-              <p>By building KIPLANScholar as a free public service, we carry forward this spirit of selfless mentorship...</p>
-            </div>
-          </div>
-
-          {/* Bigger Family Photo */}
-          <div className="md:col-span-5">
-            <div className="overflow-hidden rounded-3xl border border-slate-200 shadow-2xl">
-              <img
-                src="/assets/images/family.jpg"
-                alt="Family Inspiration"
-                className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* SECTION 9 — CALL TO ACTION (Keep your original) */}
 

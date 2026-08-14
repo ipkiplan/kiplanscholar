@@ -6,7 +6,7 @@ import {
   ArrowRight, 
   ShieldCheck 
 } from "lucide-react";
-import { Scholarship } from "../types";
+import { Scholarship } from "../lib/scholarships";
 
 interface ScholarshipCardProps {
   scholarship: Scholarship;
@@ -81,7 +81,7 @@ function OrgLogo({ name }: { name: string }) {
 }
 
 // Calculate colored status for the application deadline relative to the active reference date: July 15, 2026
-function getDeadlineStatus(deadlineStr: string) {
+function getDeadlineStatus(deadlineStr: string | null) {
   if (!deadlineStr || deadlineStr.toLowerCase().includes("rolling")) {
     return {
       status: "green",
@@ -148,14 +148,15 @@ export default function ScholarshipCard({
   // Handle Share callback securely with a non-blocking UI copy indicator
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const shareUrl = scholarship.officialWebsite || window.location.href;
+    const shareUrl = scholarship.application_url || window.location.href;
     navigator.clipboard.writeText(shareUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
   };
 
-  const deadlineInfo = getDeadlineStatus(scholarship.applicationDeadline);
+  const deadlineInfo = getDeadlineStatus(scholarship.deadline);
+  const isFullyFunded = scholarship.funding_type === "Fully Funded";
 
   return (
     <div
@@ -238,19 +239,17 @@ export default function ScholarshipCard({
 
           {/* Funding Badge */}
           <span className={`inline-flex items-center gap-1 text-[9.5px] uppercase font-bold tracking-wider px-1.8 py-0.5 rounded font-mono border ${
-            scholarship.fullyFunded === "Yes"
+            isFullyFunded
               ? "text-emerald-600 bg-emerald-50 border-emerald-200/50 dark:text-emerald-400 dark:bg-emerald-950/30 dark:border-emerald-800/30"
               : "text-blue-600 bg-blue-50 border-blue-200/50 dark:text-blue-400 dark:bg-blue-950/30 dark:border-blue-800/30"
           }`}>
-            <span>{scholarship.fullyFunded === "Yes" ? "Fully Funded" : "Partially Funded"}</span>
+            <span>{isFullyFunded ? "Fully Funded" : "Partially Funded"}</span>
           </span>
 
-          {/* Degree Level Badges */}
-          {scholarship.levels.map((level, idx) => (
-            <span key={idx} className="inline-flex items-center gap-1 text-[9.5px] uppercase font-bold tracking-wider px-1.8 py-0.5 bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 rounded font-mono border border-slate-200/40 dark:border-slate-700/50">
-              <span>{LEVEL_LABELS[level] || level}</span>
-            </span>
-          ))}
+          {/* Degree Level Badge — Supabase stores a single degree_level string, not an array */}
+          <span className="inline-flex items-center gap-1 text-[9.5px] uppercase font-bold tracking-wider px-1.8 py-0.5 bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 rounded font-mono border border-slate-200/40 dark:border-slate-700/50">
+            <span>{LEVEL_LABELS[scholarship.degree_level] || scholarship.degree_level}</span>
+          </span>
 
         </div>
 
@@ -277,7 +276,7 @@ export default function ScholarshipCard({
         <div className="flex items-center gap-1.5 shrink-0">
           {/* Apply button link */}
           <a
-            href={scholarship.officialWebsite}
+            href={scholarship.application_url || "#"}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
