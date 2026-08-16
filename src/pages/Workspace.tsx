@@ -12,6 +12,7 @@ import CreateApplicationModal from "../components/workspace/CreateApplicationMod
 import DeleteApplicationConfirm from "../components/workspace/DeleteApplicationConfirm";
 import { Application, getApplications, createApplication, deleteApplication } from "../lib/applications";
 import { getScholarships } from "../lib/scholarships";
+import { useAuth } from "../context/AuthContext";
 
 /**
  * ES-006C — My Workspace (internal name: My Documents Hub).
@@ -41,6 +42,11 @@ function matchesSearch(query: string, ...fields: string[]): boolean {
 }
 
 export default function WorkspacePage({ setCurrentTab, setPlaceholderMeta }: WorkspacePageProps) {
+  const { user } = useAuth();
+  // Falls back to the email's local part if no full name was set at
+  // registration (e.g. some OAuth sign-ins) — an existing, always-
+  // available identifier rather than a new profile field.
+  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
   const [search, setSearch] = useState("");
 
   // --- Phase 2A: My Applications state ---
@@ -164,7 +170,9 @@ export default function WorkspacePage({ setCurrentTab, setPlaceholderMeta }: Wor
           </div>
           <div>
             <h1 className="font-extrabold text-xl text-slate-800 dark:text-white">My Workspace</h1>
-            <p className="text-xs text-slate-400 dark:text-slate-500">Your documents and curated resources, in one place</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              {displayName ? `Welcome back, ${displayName} — your` : "Your"} documents and curated resources, in one place
+            </p>
           </div>
         </div>
         <WorkspaceSearch value={search} onChange={setSearch} />

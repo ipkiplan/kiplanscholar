@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { FAQS, TESTIMONIALS } from "../data/scholarships";
 import EligibilityChecker from "../components/EligibilityChecker";
 import ScholarshipCard from "../components/ScholarshipCard";
-import { notifySuccess, notifyError } from "../lib/notifications";
+import { notifySuccess, notifyError, notifyInfo } from "../lib/notifications";
 import { getFeaturedScholarships, getScholarships, Scholarship } from "../lib/scholarships";
 
 interface HomeProps {
@@ -33,7 +33,9 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
       const next = isSaving ? [...prev, id] : prev.filter(item => item !== id);
       localStorage.setItem("saved_scholarships", JSON.stringify(next));
       if (isSaving) {
-        notifySuccess("Scholarship saved.");
+        notifySuccess("Scholarship saved!");
+      } else {
+        notifyInfo("Scholarship removed.");
       }
       return next;
     });

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { LORData, LORStepId, LORTypeId, createEmptyLOR, LOR_SECTIONS } from "./lorTypes";
+import { notifySuccess } from "../../lib/notifications";
 
 const STORAGE_KEY = "kiplan_lor_builder_draft";
 
@@ -66,6 +67,7 @@ export function useLORBuilder() {
 
   const saveDraft = useCallback(() => {
     setDraft((prev) => ({ ...prev, lastSavedAt: new Date().toISOString() }));
+    notifySuccess("Document saved successfully!");
   }, []);
 
   const resetLOR = useCallback(() => {

@@ -1,6 +1,6 @@
 import { getScholarships } from "../lib/scholarships";
 import { mapSupabaseScholarship } from "../utils/mapScholarship";
-import { notifyError } from "../lib/notifications";
+import { notifySuccess, notifyInfo, notifyError } from "../lib/notifications";
 import React, { useState, useEffect } from "react";
 import {
   Calendar,
@@ -114,8 +114,14 @@ export default function Scholarships({
   const handleSaveToggle = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSavedIds((prev) => {
-      const next = prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id];
+      const isSaving = !prev.includes(id);
+      const next = isSaving ? [...prev, id] : prev.filter((item) => item !== id);
       localStorage.setItem("saved_scholarships", JSON.stringify(next));
+      if (isSaving) {
+        notifySuccess("Scholarship saved!");
+      } else {
+        notifyInfo("Scholarship removed.");
+      }
       return next;
     });
   };

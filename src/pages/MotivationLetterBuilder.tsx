@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { ArrowLeft, Download, Printer, BookOpen } from "lucide-react";
+import { ArrowLeft, Download, Printer, BookOpen, ClipboardCheck } from "lucide-react";
 import { useMotivationLetterBuilder } from "../components/motivation-letter-builder/useMotivationLetterBuilder";
 import MLBuilderForm from "../components/motivation-letter-builder/MLBuilderForm";
 import MLPreview from "../components/motivation-letter-builder/MLPreview";
 import MLTemplateSelector from "../components/motivation-letter-builder/MLTemplateSelector";
-import MLGuidancePanel from "../components/motivation-letter-builder/MLGuidancePanel";
+import DocumentGuidancePanel from "../components/document-builder/DocumentGuidancePanel";
+import ReviewDraftPanel from "../components/document-builder/ReviewDraftPanel";
 import HumanAssistantReviewPrompt from "../components/document-builder/HumanAssistantReviewPrompt";
 import { exportDocumentAsPDF, printDocument } from "../components/document-builder/printExport";
 
@@ -37,6 +38,7 @@ export default function MotivationLetterBuilderPage({ setCurrentTab }: Motivatio
   const builder = useMotivationLetterBuilder();
   const [showHumanAssistantPrompt, setShowHumanAssistantPrompt] = useState(false);
   const [showGuidancePanel, setShowGuidancePanel] = useState(false);
+  const [showReviewPanel, setShowReviewPanel] = useState(false);
 
   const handleFinish = () => {
     builder.saveDraft();
@@ -74,6 +76,14 @@ export default function MotivationLetterBuilderPage({ setCurrentTab }: Motivatio
           </button>
           <button
             type="button"
+            onClick={() => setShowReviewPanel(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+          >
+            <ClipboardCheck className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Review My Draft</span>
+          </button>
+          <button
+            type="button"
             onClick={() => printDocument("ml-print-area", "", "Motivation Letter")}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
           >
@@ -100,7 +110,33 @@ export default function MotivationLetterBuilderPage({ setCurrentTab }: Motivatio
         </div>
       </div>
 
-      <MLGuidancePanel open={showGuidancePanel} onClose={() => setShowGuidancePanel(false)} />
+      <DocumentGuidancePanel
+        open={showGuidancePanel}
+        onClose={() => setShowGuidancePanel(false)}
+        docLabel="Motivation Letter"
+        purpose="A Motivation Letter explains why this specific opportunity matters to you, why you're drawn to it, and how it fits where you're headed."
+        prepareItems={[
+          "What specifically drew you to this opportunity, not opportunities in general",
+          "How it connects to your goals and past experience",
+          "Concrete examples that show your motivation, not just statements of it",
+          "How it's different from your SOP, so the two don't repeat each other",
+        ]}
+        helpsWith={[
+          "Structuring your motivation into clear, focused paragraphs",
+          "Making sure specific examples carry the letter, not general statements",
+          "Keeping this letter consistent with your CV, SOP, and LOR — the same authentic story, told through a different lens",
+        ]}
+        setCurrentTab={setCurrentTab}
+      />
+
+      <ReviewDraftPanel
+        open={showReviewPanel}
+        onClose={() => setShowReviewPanel(false)}
+        docType="ml"
+        docLabel="Motivation Letter"
+        storageKey="kiplan_ml_builder_draft"
+        onNavigateToStep={(stepId) => builder.goToStep(stepId as Parameters<typeof builder.goToStep>[0])}
+      />
 
       <HumanAssistantReviewPrompt
         open={showHumanAssistantPrompt}

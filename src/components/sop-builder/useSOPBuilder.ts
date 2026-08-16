@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { SOPData, SOPStepId, SOPTemplateId, createEmptySOP, SOP_STEPS } from "./sopTypes";
+import { notifySuccess } from "../../lib/notifications";
 
 const STORAGE_KEY = "kiplan_sop_builder_draft";
 
@@ -70,6 +71,7 @@ export function useSOPBuilder() {
   const saveDraft = useCallback(() => {
     hasUnsavedChanges.current = false;
     setDraft((prev) => ({ ...prev, lastSavedAt: new Date().toISOString() }));
+    notifySuccess("Document saved successfully!");
   }, []);
 
   const resetSOP = useCallback(() => {

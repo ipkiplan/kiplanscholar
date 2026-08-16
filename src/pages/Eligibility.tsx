@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 import { 
   Award, 
   Sparkles, 
@@ -40,39 +41,50 @@ interface UserProfile {
   preferredCountry: string;
 }
 
-export default function Eligibility() {
+interface EligibilityProps {
+  setCurrentTab: (tab: string) => void;
+}
+
+export default function Eligibility({ setCurrentTab }: EligibilityProps) {
+  const { user } = useAuth();
+  // ProtectedRoute guarantees a non-null user by the time this component
+  // renders, but a defensive fallback is used instead of a non-null
+  // assertion in case that guarantee is ever changed elsewhere.
+  const storageKey = `kiplan_user_profile_${user?.id ?? "anonymous"}`;
+
   const [profile, setProfile] = useState<UserProfile>(() => {
+    const defaults: UserProfile = {
+      name: "",
+      level: "Master's",
+      gpa: 3.5,
+      ielts: 6.5,
+      hasSOP: false,
+      hasLOR: false,
+      isWoman: false,
+      field: "Engineering",
+      experience: 0,
+      hasResearch: false,
+      hasVolunteer: true,
+      preferredCountry: "Any"
+    };
     try {
-      const saved = localStorage.getItem("kiplan_user_profile");
-      return saved ? JSON.parse(saved) : {
-        name: "",
-        level: "Master's",
-        gpa: 3.5,
-        ielts: 6.5,
-        hasSOP: false,
-        hasLOR: false,
-        isWoman: false,
-        field: "Engineering",
-        experience: 0,
-        hasResearch: false,
-        hasVolunteer: true,
-        preferredCountry: "Any"
-      };
+      // User-scoped data takes priority if it already exists.
+      const scoped = localStorage.getItem(storageKey);
+      if (scoped) return JSON.parse(scoped);
+
+      // One-time migration: an older, pre-authentication-scoped profile
+      // may exist under the original global key. Copy it forward into
+      // the user-scoped key so it isn't lost, without deleting the
+      // original — a purely additive, non-destructive migration.
+      const legacy = localStorage.getItem("kiplan_user_profile");
+      if (legacy) {
+        localStorage.setItem(storageKey, legacy);
+        return JSON.parse(legacy);
+      }
+
+      return defaults;
     } catch {
-      return {
-        name: "",
-        level: "Master's",
-        gpa: 3.5,
-        ielts: 6.5,
-        hasSOP: false,
-        hasLOR: false,
-        isWoman: false,
-        field: "Engineering",
-        experience: 0,
-        hasResearch: false,
-        hasVolunteer: true,
-        preferredCountry: "Any"
-      };
+      return defaults;
     }
   });
 
@@ -93,11 +105,12 @@ export default function Eligibility() {
     { role: "assistant", text: "Hello! I am your KIPLAN AI Scholarship Mentor. Complete your profile and run the eligibility assessment first, and I will give you personalized guidance on overcoming gaps or selecting your best-fit programs." }
   ]);
   const [isAiTyping, setIsAiTyping] = useState(false);
+  const [nextStepDismissed, setNextStepDismissed] = useState(false);
 
   // Save profile to localstorage when changed
   useEffect(() => {
-    localStorage.setItem("kiplan_user_profile", JSON.stringify(profile));
-  }, [profile]);
+    localStorage.setItem(storageKey, JSON.stringify(profile));
+  }, [profile, storageKey]);
 
   // Run dynamic match analysis
   const handleCalculate = () => {
@@ -730,6 +743,37 @@ Feel free to ask more specific questions about recommendations, visa processing,
                     ))}
                   </div>
                 </div>
+
+                {/* Strengthen Your Application — honest next step, optional,
+                    no pressure. Does not claim documents will change the
+                    Match Score; only that presentation can be strengthened. */}
+                {!nextStepDismissed && (
+                  <div className="bg-white dark:bg-nepal-dark border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-6 sm:p-8 space-y-4">
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-widest font-mono flex items-center gap-2">
+                      <FileCheck className="h-5 w-5 text-nepal-crimson dark:text-nepal-crimson-light" /> Strengthen Your Application
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl">
+                      Some factors, like a completed GPA, can't be changed. But how your genuine experience, achievements and qualifications are presented in your CV, SOP and other documents can always be reviewed and strengthened.
+                    </p>
+                    <div className="flex flex-wrap gap-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentTab("workspace")}
+                        className="flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-nepal-blue to-nepal-blue-light text-white font-bold text-xs rounded-xl shadow-md hover:opacity-95 transition-all cursor-pointer"
+                      >
+                        Review & Improve My Documents
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNextStepDismissed(true)}
+                        className="px-5 py-2.5 text-slate-500 dark:text-slate-400 font-bold text-xs rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      >
+                        Not Now
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Best Fit Matched Opportunities */}
                 <div className="space-y-4">

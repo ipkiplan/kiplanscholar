@@ -22,6 +22,7 @@ import {
   LogOut
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { notifySuccess } from "../lib/notifications";
 
 interface NavbarProps {
   currentTab: string;
@@ -459,6 +460,11 @@ export default function Navbar({
       desc: "ATS-optimized curriculum vitae structures." 
     },
     { 
+      label: "CV Writing Guide", 
+      action: () => handleResourcePreset("res-cv"),
+      desc: "What to include, how to phrase achievements, and formatting standards." 
+    },
+    { 
       label: "Motivation Letter Builder", 
       action: () => handleNavClick("motivation-letter-builder"), 
       desc: "Interactive writing coach for scholarship and admission letters." 
@@ -469,14 +475,8 @@ export default function Navbar({
       desc: "Country-by-country visa overview, documents, and checklist." 
     },
     { 
-      label: "Interview Tips", 
-      action: () => handlePlaceholder(
-        "Scholarship Interview Blueprints",
-        "Interview",
-        "Step-by-step prep guides, standard interview prompts, and communication techniques for Chevening/Fulbright boards.",
-        ["Most common scholarship panel interview questions", "Mock answer templates for Nepali aspirants", "STAR technique storytelling worksheets", "Tips for clear audio-video setups for remote interviews"],
-        "resource"
-      ),
+      label: "Interview Preparation", 
+      action: () => handleResourcePreset("res-interview-prep"),
       desc: "Chevening & Fulbright panel prep questions." 
     },
     { 
@@ -671,6 +671,7 @@ export default function Navbar({
                 <button
                   onClick={async () => {
                     await signOut();
+                    notifySuccess("Logout successful. See you again!");
                     handleNavClick("home");
                   }}
                   className="btn-ghost !px-4 !py-2 !text-sm"
@@ -818,6 +819,7 @@ export default function Navbar({
                     <button
                       onClick={async () => {
                         await signOut();
+                        notifySuccess("Logout successful. See you again!");
                         handleNavClick("home");
                       }}
                       className="btn-ghost w-full !py-3 font-bold"

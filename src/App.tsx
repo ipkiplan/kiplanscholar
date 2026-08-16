@@ -130,7 +130,9 @@ export default function App() {
             )}
 
             {currentTab === "eligibility" && (
-              <Eligibility />
+              <ProtectedRoute setCurrentTab={setCurrentTab}>
+                <Eligibility setCurrentTab={setCurrentTab} />
+              </ProtectedRoute>
             )}
 
             {currentTab === "organizations" && (

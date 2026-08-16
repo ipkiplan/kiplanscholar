@@ -4,6 +4,7 @@ import { loginWithGoogle } from "../lib/auth";
 import { loginUser } from "../lib/auth";
 import PasswordInput from "../components/auth/PasswordInput";
 import { useAuth } from "../context/AuthContext";
+import { notifySuccess } from "../lib/notifications";
 
 interface LoginProps {
   setCurrentTab: (tab: string) => void;
@@ -70,6 +71,7 @@ export default function Login({ setCurrentTab }: LoginProps) {
         return;
       }
 
+      notifySuccess("Login successful! Welcome back.");
       setCurrentTab("dashboard");
     } catch (err) {
       setError("Unable to reach the server. Check your connection and try again.");

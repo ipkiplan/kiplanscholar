@@ -22,9 +22,11 @@ function triggerBrowserPrint(printAreaId: string, documentTitle: string) {
     style.id = styleId;
     style.textContent = `
       @media print {
-        body * { visibility: hidden; }
+        body *:not(#${printAreaId}):not(#${printAreaId} *):not(:has(#${printAreaId})) {
+          display: none !important;
+        }
         #${printAreaId}, #${printAreaId} * { visibility: visible; }
-        #${printAreaId} { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; border-radius: 0 !important; }
+        #${printAreaId} { position: static; box-shadow: none !important; border-radius: 0 !important; }
       }
     `;
     document.head.appendChild(style);

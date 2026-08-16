@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { MLData, MLSectionId, MLTemplateId, createEmptyML, ML_SECTIONS, countWords } from "./mlTypes";
+import { notifySuccess } from "../../lib/notifications";
 
 const STORAGE_KEY = "kiplan_ml_builder_draft";
 
@@ -70,6 +71,7 @@ export function useMotivationLetterBuilder() {
   /** Explicit save, separate from the silent auto-persist above. */
   const saveDraft = useCallback(() => {
     setDraft((prev) => ({ ...prev, lastSavedAt: new Date().toISOString() }));
+    notifySuccess("Document saved successfully!");
   }, []);
 
   const resetML = useCallback(() => {

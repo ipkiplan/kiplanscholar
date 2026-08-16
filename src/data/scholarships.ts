@@ -1941,5 +1941,47 @@ export const RESOURCES: ResourceTemplate[] = [
     tips: [],
     comingSoon: true,
     routeTo: "legal-notarial"
-  }
+  },
+  {
+    id: "res-interview-prep",
+    title: "Scholarship Interview Preparation",
+    description: "Practical guidance for scholarship panel and remote interviews — common question areas, a structure for organizing your answers, and technical setup tips for video interviews.",
+    type: "Interview",
+    downloadUrl: "#",
+    contentStructure: [
+      "Common question areas: Why this scholarship and this programme? Tell us about yourself and your background. Your career goals and how you plan to contribute after returning to Nepal. A challenge you've faced and how you handled it. Questions specific to your field of study.",
+      "The STAR technique: a simple structure for organizing an answer around real experience — Situation (brief context), Task (what you needed to do), Action (what you actually did), Result (the outcome, including what you learned).",
+      "Using STAR with your own material: pick two or three genuine experiences from your studies, work, or community involvement, and practice describing each one using the Situation/Task/Action/Result structure. The goal is a structure to adapt, not a script to memorize or copy — panels notice rehearsed, generic answers.",
+      "Remote/video interview setup: test your camera and microphone at least a day beforehand, use a stable wired or strong Wi-Fi connection where possible, sit facing a light source rather than a window behind you, choose a plain and tidy background, and dress the same way you would for an in-person interview.",
+    ],
+    tips: [
+      "Practice your answers out loud, not just in your head — this is the only way to notice if something sounds unclear or too long.",
+      "Keep answers focused; two to three minutes is usually enough for most questions.",
+      "It's fine to pause for a moment before answering — a brief pause reads as thoughtful, not unprepared.",
+      "Prepare a few real, specific examples from your own experience that you can adapt to different questions, rather than one fixed answer per question.",
+      "Have a backup plan for your internet connection or device in case of technical issues on the day.",
+    ],
+  },
+  {
+    id: "res-cv",
+    title: "CV Writing Guide",
+    description: "What to include, how to phrase achievements, and formatting standards for a strong academic CV.",
+    type: "CV",
+    downloadUrl: "#",
+    contentStructure: [
+      "Personal Information & Summary: your name and contact details, followed by a short 2–3 sentence professional summary that highlights your academic focus and goals — not a generic introduction.",
+      "Education: list degrees in reverse chronological order (most recent first), including institution, dates, and any coursework, thesis, or research relevant to your target programme.",
+      "Experience: work, research, or volunteer experience — describe what you actually did and achieved using action verbs, not just a list of duties (e.g. 'Led a team of five to redesign the intake process' rather than 'Responsible for the intake process').",
+      "Achievements: awards, scholarships, and publications, each described with enough context that someone outside your specific field can understand why it matters.",
+      "Skills & Activities: list skills you can genuinely speak to in an interview, grouped logically (e.g. technical skills together, language skills together) rather than one long unsorted list.",
+      "Academic vs. professional CV format: academic CVs are typically longer and include research and publications sections; professional CVs are usually concise (one to two pages) and focus on work achievements. Check what your target programme actually expects before choosing a length and style.",
+    ],
+    tips: [
+      "Use active, specific verbs — led, designed, analyzed, published — instead of vague ones like helped, worked on, or was involved in.",
+      "Quantify results where you honestly can (numbers, percentages, timeframes), but never invent a figure you can't stand behind if asked about it.",
+      "Keep formatting consistent throughout: the same date format, heading style, and bullet style on every page.",
+      "Leave out personal details like a photo, marital status, or religion unless the programme specifically asks for them.",
+      "Ask someone else to proofread before you submit — spelling and formatting errors are one of the most common reasons a CV gets set aside early.",
+    ],
+  },
 ];

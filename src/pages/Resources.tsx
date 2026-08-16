@@ -23,26 +23,31 @@ export default function Resources({ setCurrentTab }: ResourcesProps) {
   }, []);
 
   const normalDetailPanel = (
-    <div className="lg:col-span-8 bg-white dark:bg-nepal-dark border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-6 shadow-sm space-y-6 relative">
+    <div className="lg:col-span-8 bg-white dark:bg-nepal-dark border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-6 shadow-sm space-y-6">
       {/* Download button is a sibling OUTSIDE #resource-print-area, so
           it's naturally excluded from the printed output by the
           existing print stylesheet's "body * { visibility: hidden }"
-          catch-all — no separate print-only styling needed. Positioned
-          absolutely so the visible on-screen layout is unchanged from
-          before (title/type + button on the same row). */}
-      <button
-        onClick={() => exportDocumentAsPDF("resource-print-area", selectedTemplate.title, "Guidelines")}
-        className="absolute top-6 right-6 px-4 py-2 bg-gradient-to-r from-nepal-blue to-nepal-blue-light text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer hover:opacity-95 z-10"
-      >
-        <Download className="h-4 w-4" /> Download Guidelines
-      </button>
+          catch-all — no separate print-only styling needed. Normal
+          document flow (not absolute positioning) so this wrapper
+          doesn't need to be a positioned ancestor — #resource-print-area's
+          print-time "position: absolute; top: 0" (in printExport.ts)
+          must resolve against the true page, not a relatively-positioned
+          parent, or printed content starts partway down the page. */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => exportDocumentAsPDF("resource-print-area", selectedTemplate.title, "Guidelines")}
+          className="px-4 py-2 bg-gradient-to-r from-nepal-blue to-nepal-blue-light text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer hover:opacity-95"
+        >
+          <Download className="h-4 w-4" /> Download Guidelines
+        </button>
+      </div>
 
       {/* Everything the printed PDF should contain — title, type,
           description, structure, and tips. Matches the existing
           project pattern (MLPreview.tsx) of reusing already-visible
           content directly as the print target. */}
       <div id="resource-print-area" className="space-y-6">
-        <div className="pr-32 pb-4 border-b border-slate-100 dark:border-slate-800/60">
+        <div className="pb-4 border-b border-slate-100 dark:border-slate-800/60">
           <span className="text-[10px] font-bold uppercase tracking-widest text-nepal-gold font-mono block">
             {selectedTemplate.type} GUIDE
           </span>

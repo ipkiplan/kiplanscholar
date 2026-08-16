@@ -96,21 +96,8 @@ export const CURATED_RESOURCES: ResourceCardConfig[] = [
     id: "cv-guide",
     title: "CV Writing Guide",
     description: "What to include, how to phrase achievements, and formatting standards.",
-    kind: "placeholder",
-    // No existing resource entry covers this — verified against the
-    // real RESOURCES data before writing this file. Fresh, honest
-    // placeholder copy, not a fabricated claim of existing content.
-    placeholder: {
-      title: "CV Writing Guide",
-      category: "CV",
-      description: "A structured guide covering what to include, how to phrase achievements, and formatting standards for a strong academic CV.",
-      comingSoonFeatures: [
-        "Section-by-section writing standards",
-        "Action-verb and achievement-phrasing examples",
-        "Formatting conventions for academic vs. professional CVs",
-        "Common mistakes to avoid",
-      ],
-    },
+    kind: "resource",
+    resourcePresetId: "res-cv",
   },
   {
     id: "sop-guide",
@@ -162,20 +149,9 @@ export const CURATED_RESOURCES: ResourceCardConfig[] = [
   {
     id: "interview-prep",
     title: "Interview Preparation",
-    description: "Chevening & Fulbright panel prep questions.",
-    kind: "placeholder",
-    // Identical content to the existing Navbar "Interview Tips" entry.
-    placeholder: {
-      title: "Scholarship Interview Blueprints",
-      category: "Interview",
-      description: "Step-by-step prep guides, standard interview prompts, and communication techniques for Chevening/Fulbright boards.",
-      comingSoonFeatures: [
-        "Most common scholarship panel interview questions",
-        "Mock answer templates for Nepali aspirants",
-        "STAR technique storytelling worksheets",
-        "Tips for clear audio-video setups for remote interviews",
-      ],
-    },
+    description: "Common panel questions, the STAR technique, and remote-interview setup tips.",
+    kind: "resource",
+    resourcePresetId: "res-interview-prep",
   },
   {
     id: "blog",

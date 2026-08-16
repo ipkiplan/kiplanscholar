@@ -1,11 +1,16 @@
 import React, { useState } from "react";
-import { ArrowLeft, Download, Printer } from "lucide-react";
+import { ArrowLeft, Download, Printer, BookOpen, ClipboardCheck } from "lucide-react";
 import { useCVBuilder } from "../components/cv-builder/useCVBuilder";
 import CVBuilderForm from "../components/cv-builder/CVBuilderForm";
 import CVPreview from "../components/cv-builder/CVPreview";
 import TemplateSelector from "../components/cv-builder/TemplateSelector";
 import HumanAssistantCVPrompt from "../components/cv-builder/HumanAssistantCVPrompt";
+import DocumentGuidancePanel from "../components/document-builder/DocumentGuidancePanel";
+import ReviewDraftPanel from "../components/document-builder/ReviewDraftPanel";
 import { exportCVAsPDF, printCV } from "../components/cv-builder/exportCV";
+import { RESOURCES } from "../data/scholarships";
+
+const cvResource = RESOURCES.find((r) => r.id === "res-cv");
 
 /**
  * ES-006A — CV Builder & Review (Version 1.0).
@@ -22,6 +27,8 @@ interface CVBuilderPageProps {
 export default function CVBuilderPage({ setCurrentTab }: CVBuilderPageProps) {
   const builder = useCVBuilder();
   const [showHumanAssistantPrompt, setShowHumanAssistantPrompt] = useState(false);
+  const [showGuidancePanel, setShowGuidancePanel] = useState(false);
+  const [showReviewPanel, setShowReviewPanel] = useState(false);
 
   const handleFinish = () => {
     setShowHumanAssistantPrompt(true);
@@ -48,6 +55,22 @@ export default function CVBuilderPage({ setCurrentTab }: CVBuilderPageProps) {
         <div className="flex items-center gap-2">
           <TemplateSelector value={builder.template} onChange={builder.setTemplate} />
           <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
+          <button
+            type="button"
+            onClick={() => setShowGuidancePanel(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Guidance</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowReviewPanel(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+          >
+            <ClipboardCheck className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Review My Draft</span>
+          </button>
           <button
             type="button"
             onClick={() => printCV(builder.data.personalInfo.fullName)}
@@ -77,6 +100,37 @@ export default function CVBuilderPage({ setCurrentTab }: CVBuilderPageProps) {
       </div>
 
       <HumanAssistantCVPrompt open={showHumanAssistantPrompt} onClose={() => setShowHumanAssistantPrompt(false)} />
+
+      <DocumentGuidancePanel
+        open={showGuidancePanel}
+        onClose={() => setShowGuidancePanel(false)}
+        docLabel="CV / Resume"
+        purpose="Your CV is the evidence base for your application — education, experience, achievements, and skills, presented clearly so reviewers can see what you've actually done."
+        prepareItems={[
+          "Your academic background and qualifications, with dates",
+          "Work, research, or volunteer experience relevant to your goals",
+          "Concrete achievements — awards, results, responsibilities you held",
+          "Skills and activities that support your application",
+        ]}
+        helpsWith={[
+          "Structuring each section clearly and consistently",
+          "Phrasing genuine achievements so they read well",
+          "Keeping your CV consistent with your SOP and other documents — without repeating them",
+        ]}
+        resourcePresetId="res-cv"
+        setCurrentTab={setCurrentTab}
+        contentStructure={cvResource?.contentStructure}
+        tips={cvResource?.tips}
+      />
+
+      <ReviewDraftPanel
+        open={showReviewPanel}
+        onClose={() => setShowReviewPanel(false)}
+        docType="cv"
+        docLabel="CV / Resume"
+        storageKey="kiplan_cv_builder_draft"
+        onNavigateToStep={(stepId) => builder.goToStep(stepId as Parameters<typeof builder.goToStep>[0])}
+      />
     </div>
   );
 }
