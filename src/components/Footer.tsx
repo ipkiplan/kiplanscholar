@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { GraduationCap, Mail, Phone, MapPin, Send, CheckCircle2, Globe, Heart, MessageCircle, Building2 } from "lucide-react";
+import { GraduationCap, Mail, Phone, MapPin, Send, CheckCircle2, Globe, Heart, MessageCircle, Building2, Loader2, AlertCircle } from "lucide-react";
 import { notifySuccess } from "../lib/notifications";
+import { supabase } from "../lib/supabase";
 
 interface FooterProps {
   setCurrentTab: (tab: string) => void;
@@ -41,14 +42,59 @@ function ViberIcon({ className }: { className?: string }) {
 export default function Footer({ setCurrentTab }: FooterProps) {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
+  const [subscribeError, setSubscribeError] = useState<string | null>(null);
+  const [alreadySubscribed, setAlreadySubscribed] = useState(false);
+  const [aiWorkshopOptIn, setAiWorkshopOptIn] = useState(false);
+  const [aiTrainingOptIn, setAiTrainingOptIn] = useState(false);
+  const [notarialOptIn, setNotarialOptIn] = useState(false);
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim()) {
+    if (subscribing) return; // guards against duplicate submissions while a request is already in flight
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) return;
+
+    setSubscribing(true);
+    setSubscribeError(null);
+
+    try {
+      const { error } = await supabase
+        .from("scholarship_alert_subscribers")
+        .insert({
+          email: normalizedEmail,
+          // scholarship_alert_opt_in defaults to true at the database
+          // level -- this is the primary subscription, always on for a
+          // new signup here. The three categories below are genuinely
+          // optional and default to false unless explicitly checked;
+          // consent is never inferred from subscribing to alerts alone.
+          ai_workshop_opt_in: aiWorkshopOptIn,
+          ai_training_opt_in: aiTrainingOptIn,
+          notarial_service_opt_in: notarialOptIn,
+        });
+
+      if (error) {
+        if (error.code === "23505") {
+          // Unique-constraint violation — this address is already on the
+          // list. Shown as its own distinct message, not silently merged
+          // with the fresh-subscription success state, per spec — but
+          // still reveals the same share panel below, since either way
+          // the visitor's address is genuinely subscribed.
+          setAlreadySubscribed(true);
+          setSubscribed(true);
+          setEmail("");
+          return;
+        }
+        setSubscribeError("Unable to subscribe right now. Please try again.");
+        return;
+      }
+
       setSubscribed(true);
-      setTimeout(() => {
-        setEmail("");
-      }, 3000);
+      setEmail("");
+    } catch {
+      setSubscribeError("Unable to subscribe right now. Please try again.");
+    } finally {
+      setSubscribing(false);
     }
   };
 
@@ -232,7 +278,7 @@ export default function Footer({ setCurrentTab }: FooterProps) {
               <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-3">
                 <div className="flex items-center gap-2 text-emerald-400 text-sm font-semibold">
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  <span>Thank you for your interest in KIPLANScholar!</span>
+                  <span>{alreadySubscribed ? "You're already subscribed to Scholarship Alerts." : "Thank you for your interest in KIPLANScholar!"}</span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
                   Help more students discover global educational opportunities by sharing KIPLANScholar.
@@ -265,24 +311,66 @@ export default function Footer({ setCurrentTab }: FooterProps) {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubscribe} className="flex gap-2">
-                <div className="relative flex-grow">
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-nepal-crimson transition-all"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="px-3 py-2 bg-gradient-to-r from-nepal-crimson to-nepal-crimson-light text-white font-semibold rounded-xl text-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center justify-center shrink-0"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              </form>
+              <div className="space-y-2">
+                <form onSubmit={handleSubscribe} className="space-y-2">
+                  <div className="flex gap-2">
+                    <div className="relative flex-grow">
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-nepal-crimson transition-all"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={subscribing}
+                      className="px-3 py-2 bg-gradient-to-r from-nepal-crimson to-nepal-crimson-light text-white font-semibold rounded-xl text-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center justify-center shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {subscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {/* Optional, clearly-separate consent — never inferred
+                      from subscribing to alerts alone. Defaults unchecked. */}
+                  <div className="space-y-1.5 pt-1">
+                    <label className="flex items-start gap-2 text-[11px] text-slate-400 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={aiWorkshopOptIn}
+                        onChange={(e) => setAiWorkshopOptIn(e.target.checked)}
+                        className="mt-0.5 accent-nepal-crimson"
+                      />
+                      <span>I'd also like to hear about KIPLANScholar AI workshops and events.</span>
+                    </label>
+                    <label className="flex items-start gap-2 text-[11px] text-slate-400 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={aiTrainingOptIn}
+                        onChange={(e) => setAiTrainingOptIn(e.target.checked)}
+                        className="mt-0.5 accent-nepal-crimson"
+                      />
+                      <span>I'd also like to hear about KIPLANScholar AI classes and training.</span>
+                    </label>
+                    <label className="flex items-start gap-2 text-[11px] text-slate-400 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={notarialOptIn}
+                        onChange={(e) => setNotarialOptIn(e.target.checked)}
+                        className="mt-0.5 accent-nepal-crimson"
+                      />
+                      <span>I'd also like to hear about KIPLANScholar notarial services.</span>
+                    </label>
+                  </div>
+                </form>
+                {subscribeError && (
+                  <div className="flex items-center gap-1.5 text-xs text-red-400">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    <span>{subscribeError}</span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
