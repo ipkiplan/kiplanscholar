@@ -336,7 +336,7 @@ const KIPLAN_CONTACT_LINKS: ContactLink[] = [
 const KIPLAN_CONTACT_TEXT =
   "Of course — I'll connect you with a real KIPLAN team member. You can reach us directly:\n\n" +
   "KIPLAN\nCivil Trade Centre (CTC) Mall\nSundhara, Kathmandu 44600, Nepal\n\n" +
-  "Office: +977 1 5312040\nMobile (WhatsApp/Viber): +977 9849530970\nEmail: ipkiplan@gmail.com";
+  "Office: +977 1 5312040\nMobile (WhatsApp/Viber): +977 9849530970\nEmail: kiplanscholar@gmail.com";
 
 // ---------------------------------------------------------------------------
 // ES-006A.1 — Document-completion intent recognition

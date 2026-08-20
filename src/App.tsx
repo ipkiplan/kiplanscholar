@@ -1,39 +1,59 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Toaster } from "sonner";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+// Home is kept as a static, eager import: currentTab initializes to "home",
+// so this is the one page component genuinely required for the very first
+// render, with no lazy/Suspense delay.
 import Home from "./pages/Home";
-import Scholarships from "./pages/Scholarships";
-import Countries from "./pages/Countries";
-import Women from "./pages/Women";
-import Entrepreneurs from "./pages/Entrepreneurs";
-import Resources from "./pages/Resources";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import TermsOfUse from "./pages/TermsOfUse";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import Sitemap from "./pages/Sitemap";
-import Disclaimer from "./pages/Disclaimer";
-import Faq from "./pages/Faq";
-import Eligibility from "./pages/Eligibility";
-import Organizations from "./pages/Organizations";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import AIAssistant from "./pages/AIAssistant";
-import CVBuilderPage from "./pages/CVBuilder";
-import SOPBuilderPage from "./pages/SOPBuilder";
-import LORBuilderPage from "./pages/LORBuilder";
-import MotivationLetterBuilderPage from "./pages/MotivationLetterBuilder";
-import LegalNotarialPage from "./pages/LegalNotarial";
-import WorkspacePage from "./pages/Workspace";
-import VisaPreparationHub from "./pages/VisaPreparationHub";
-import ScholarshipCalendar from "./pages/ScholarshipCalendar";
-import UniversityExplorer from "./pages/UniversityExplorer";
-import UniversityComparisonPage from "./pages/UniversityComparison";
+// The remaining 28 page components are route-level code-split via
+// React.lazy — each becomes its own chunk, fetched only when its
+// currentTab value is actually reached, instead of all being bundled
+// into the single initial JS chunk regardless of which page is visited.
+const Scholarships = React.lazy(() => import("./pages/Scholarships"));
+const Countries = React.lazy(() => import("./pages/Countries"));
+const Women = React.lazy(() => import("./pages/Women"));
+const Entrepreneurs = React.lazy(() => import("./pages/Entrepreneurs"));
+const Resources = React.lazy(() => import("./pages/Resources"));
+const About = React.lazy(() => import("./pages/About"));
+const Contact = React.lazy(() => import("./pages/Contact"));
+const TermsOfUse = React.lazy(() => import("./pages/TermsOfUse"));
+const PrivacyPolicy = React.lazy(() => import("./pages/PrivacyPolicy"));
+const Sitemap = React.lazy(() => import("./pages/Sitemap"));
+const Disclaimer = React.lazy(() => import("./pages/Disclaimer"));
+const Faq = React.lazy(() => import("./pages/Faq"));
+const Eligibility = React.lazy(() => import("./pages/Eligibility"));
+const Organizations = React.lazy(() => import("./pages/Organizations"));
+const Login = React.lazy(() => import("./pages/Login"));
+const Register = React.lazy(() => import("./pages/Register"));
+const Dashboard = React.lazy(() => import("./pages/Dashboard"));
+const AIAssistant = React.lazy(() => import("./pages/AIAssistant"));
+const CVBuilderPage = React.lazy(() => import("./pages/CVBuilder"));
+const SOPBuilderPage = React.lazy(() => import("./pages/SOPBuilder"));
+const LORBuilderPage = React.lazy(() => import("./pages/LORBuilder"));
+const MotivationLetterBuilderPage = React.lazy(() => import("./pages/MotivationLetterBuilder"));
+const LegalNotarialPage = React.lazy(() => import("./pages/LegalNotarial"));
+const WorkspacePage = React.lazy(() => import("./pages/Workspace"));
+const VisaPreparationHub = React.lazy(() => import("./pages/VisaPreparationHub"));
+const ScholarshipCalendar = React.lazy(() => import("./pages/ScholarshipCalendar"));
+const UniversityExplorer = React.lazy(() => import("./pages/UniversityExplorer"));
+const UniversityComparisonPage = React.lazy(() => import("./pages/UniversityComparison"));
 import PlaceholderView from "./components/PlaceholderView";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { motion, AnimatePresence } from "motion/react";
+import { Loader2 } from "lucide-react";
+
+// Minimal, unobtrusive fallback shown only for the brief moment a
+// lazy-loaded page chunk is being fetched. Not a new persistent UI
+// element — it never appears for the initial Home render (Home is not
+// lazy), only during navigation to any other page.
+function RouteLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center py-24">
+      <Loader2 className="h-6 w-6 animate-spin text-slate-400" aria-label="Loading page" />
+    </div>
+  );
+}
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>("home");
@@ -114,6 +134,7 @@ export default function App() {
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.28, ease: "easeInOut" }}
           >
+            <Suspense fallback={<RouteLoadingFallback />}>
             {currentTab === "home" && (
               <Home
                 setCurrentTab={setCurrentTab}
@@ -270,6 +291,7 @@ export default function App() {
             {currentTab === "placeholder" && placeholderMeta && (
               <PlaceholderView {...placeholderMeta} />
             )}
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </main>

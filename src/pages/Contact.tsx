@@ -1,18 +1,43 @@
 import React, { useState } from "react";
-import { Mail, Phone, MapPin, Send, CheckCircle2, MessageSquare, Landmark, Clock, PhoneCall, MessageCircle } from "lucide-react";
+import { Mail, Phone, MapPin, Send, CheckCircle2, MessageSquare, Landmark, Clock, PhoneCall, MessageCircle, AlertCircle, Loader2 } from "lucide-react";
+import { supabase } from "../lib/supabase";
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: "", email: "", subject: "Scholarships Filter help", message: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.name && formData.email && formData.message) {
+    if (submitting) return; // guards against a double-click/duplicate submit while a request is already in flight
+    if (!formData.name || !formData.email || !formData.message) return;
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke("send-contact-inquiry", {
+        body: formData,
+      });
+
+      if (invokeError || !data?.success) {
+        setError(
+          (data && "error" in data && typeof data.error === "string" && data.error) ||
+            "We could not send your message right now. Please try again, or email us directly."
+        );
+        return;
+      }
+
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
         setFormData({ name: "", email: "", subject: "Scholarships Filter help", message: "" });
       }, 4000);
+    } catch {
+      setError("We could not send your message right now. Please try again, or email us directly.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -119,12 +144,29 @@ export default function Contact() {
                 />
               </div>
 
+              {error && (
+                <div className="flex items-start gap-2 px-3 py-2.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl text-xs text-red-700 dark:text-red-300">
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+              )}
+
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-nepal-blue to-nepal-blue-light dark:from-nepal-crimson dark:to-nepal-crimson-light text-white font-extrabold text-xs rounded-xl shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                disabled={submitting}
+                className="w-full py-3 bg-gradient-to-r from-nepal-blue to-nepal-blue-light dark:from-nepal-crimson dark:to-nepal-crimson-light text-white font-extrabold text-xs rounded-xl shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Send className="h-4.5 w-4.5" />
-                <span>Submit Inquiry Ticket</span>
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                    <span>Sending...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4.5 w-4.5" />
+                    <span>Submit Inquiry Ticket</span>
+                  </>
+                )}
               </button>
             </form>
           )}
@@ -136,7 +178,7 @@ export default function Contact() {
           {/* Quick Contact Block */}
           <div className="bg-white dark:bg-nepal-dark border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-6 space-y-5 shadow-sm">
             <h3 className="font-extrabold text-slate-800 dark:text-white text-base">
-              KIPLAN Law & Notary Head Office
+              Our Office
             </h3>
             
             <div className="space-y-4">
@@ -144,8 +186,8 @@ export default function Contact() {
               <div className="flex gap-3 items-start text-xs text-slate-600 dark:text-slate-300">
                 <MapPin className="h-5 w-5 text-nepal-crimson shrink-0 mt-0.5" />
                 <div className="flex flex-col">
-                  <span className="font-semibold text-slate-800 dark:text-white">KIPLAN Law & Notary</span>
                   <span>Civil Trade Centre (CTC) Mall,</span>
+                  <span>4th Floor, Unit 525,</span>
                   <span>Sundhara, Kathmandu 44600, Nepal</span>
                 </div>
               </div>
@@ -177,8 +219,8 @@ export default function Contact() {
                 <Mail className="h-4.5 w-4.5 text-sky-400 shrink-0 mt-0.5" />
                 <div className="flex flex-col">
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Email</span>
-                  <a href="mailto:ipkiplan@gmail.com" className="text-slate-700 dark:text-slate-200 hover:text-sky-400 hover:underline font-semibold transition-colors mt-0.5 break-all">
-                    ipkiplan@gmail.com
+                  <a href="mailto:kiplanscholar@gmail.com" className="text-slate-700 dark:text-slate-200 hover:text-sky-400 hover:underline font-semibold transition-colors mt-0.5 break-all">
+                    kiplanscholar@gmail.com
                   </a>
                 </div>
               </div>
@@ -201,25 +243,25 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Styled Mock Map */}
+          {/* Google Maps Embed — keyless iframe embed, no API key required.
+              Geographic anchor: Google Plus Code M8X7+34P (Kathmandu 44600,
+              Nepal), identified from a supplied Google Maps screenshot as
+              the exact point inside CTC Mall — used only to anchor the
+              pin correctly; the displayed address remains the approved
+              "Civil Trade Centre (CTC) Mall, Sundhara, Kathmandu" text. */}
           <div className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl p-4 space-y-3">
             <span className="text-[10px] font-bold uppercase text-slate-400 font-mono block">
-              Sundhara Head Office Location
+              KIPLANScholar Office — Inside Civil Trade Centre (CTC) Mall, Sundhara, Kathmandu
             </span>
-            {/* Map Mock Frame */}
-            <div className="h-44 bg-slate-200 dark:bg-slate-800 rounded-xl relative overflow-hidden border border-slate-300/40 dark:border-slate-700/50 flex items-center justify-center text-center">
-              {/* Minimal stylized grid background */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-slate-200 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" />
-              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#2c3e50_1px,transparent_1px)] [background-size:16px_16px]" />
-              
-              {/* Custom marker */}
-              <div className="relative flex flex-col items-center">
-                <div className="absolute -top-6 animate-ping h-8 w-8 rounded-full bg-nepal-crimson/30" />
-                <MapPin className="h-8 w-8 text-nepal-crimson fill-nepal-crimson drop-shadow-md z-1" />
-                <span className="mt-2 text-[10px] font-black text-slate-800 dark:text-white bg-white/90 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800 px-2 py-0.5 rounded-md shadow-sm z-1">
-                  CTC Mall, Sundhara, Kathmandu
-                </span>
-              </div>
+            <div className="h-44 w-full rounded-xl overflow-hidden border border-slate-300/40 dark:border-slate-700/50">
+              <iframe
+                title="Map showing Civil Trade Centre (CTC) Mall, Sundhara, Kathmandu 44600, Nepal"
+                src="https://www.google.com/maps?q=M8X7%2B34P+Kathmandu+44600+Nepal&output=embed"
+                className="w-full h-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
             </div>
           </div>
 

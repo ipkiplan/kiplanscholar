@@ -684,7 +684,7 @@ export default function Navbar({
               <div className="hidden md:flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => handleNavClick("login")}
-                  className="btn-ghost !border-0 !px-4 !py-2 !text-sm"
+                  className="btn-ghost !px-4 !py-2 !text-sm"
                 >
                   Login
                 </button>

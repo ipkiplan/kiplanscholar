@@ -185,7 +185,6 @@ export default function TermsOfUse() {
               <MapPin className="h-4 w-4 text-[#D7263D]" /> Address
             </h4>
             <p className="text-slate-600 dark:text-slate-300 font-medium">
-              KIPLAN Law & Notary<br />
               Civil Trade Centre (CTC) Mall<br />
               Sundhara, Kathmandu 44600<br />
               Nepal
@@ -196,7 +195,7 @@ export default function TermsOfUse() {
               <Mail className="h-4 w-4 text-[#D7263D]" /> Direct Contact
             </h4>
             <div className="text-slate-600 dark:text-slate-300 space-y-1 font-medium">
-              <p>Email: <a href="mailto:ipkiplan@gmail.com" className="text-[#D7263D] hover:underline">ipkiplan@gmail.com</a></p>
+              <p>Email: <a href="mailto:kiplanscholar@gmail.com" className="text-[#D7263D] hover:underline">kiplanscholar@gmail.com</a></p>
               <p>Phone: <a href="tel:+97715312040" className="text-slate-700 dark:text-slate-200 hover:underline">+977 1 5312040</a></p>
               <p className="pl-12"><a href="tel:+9779849530970" className="text-slate-700 dark:text-slate-200 hover:underline">+977 9849530970</a></p>
             </div>
@@ -280,7 +279,7 @@ export default function TermsOfUse() {
         {/* Elegant Footer Notice */}
         <div className="border-t border-slate-100 dark:border-slate-800/40 pt-8 text-center">
           <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-            © 2026 KIPLANScholar – Developed by KIPLAN Law & Notary.
+            © 2026 KIPLANScholar.
           </p>
         </div>
 

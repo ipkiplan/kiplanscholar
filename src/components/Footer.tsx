@@ -166,7 +166,6 @@ export default function Footer({ setCurrentTab }: FooterProps) {
               <li className="flex items-start gap-2.5">
                 <MapPin className="h-5 w-5 text-nepal-crimson shrink-0 mt-0.5" />
                 <div className="flex flex-col">
-                  <span className="font-semibold text-slate-200">KIPLAN Law & Notary</span>
                   <span>Civil Trade Centre (CTC) Mall,</span>
                   <span>Sundhara, Kathmandu 44600, Nepal</span>
                 </div>
@@ -213,8 +212,8 @@ export default function Footer({ setCurrentTab }: FooterProps) {
                 <Mail className="h-4.5 w-4.5 text-sky-400 shrink-0 mt-0.5" />
                 <div className="flex flex-col">
                   <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Email</span>
-                  <a href="mailto:ipkiplan@gmail.com" className="text-slate-300 hover:text-sky-400 hover:underline transition-colors break-all">
-                    ipkiplan@gmail.com
+                  <a href="mailto:kiplanscholar@gmail.com" className="text-slate-300 hover:text-sky-400 hover:underline transition-colors break-all">
+                    kiplanscholar@gmail.com
                   </a>
                 </div>
               </li>
@@ -351,6 +350,16 @@ export default function Footer({ setCurrentTab }: FooterProps) {
               className="hover:text-slate-300 cursor-pointer transition-colors bg-transparent border-none text-slate-500 font-semibold text-xs"
             >
               Contact Us
+            </button>
+            <span>•</span>
+            <button 
+              onClick={() => {
+                setCurrentTab("sitemap");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="hover:text-slate-300 cursor-pointer transition-colors bg-transparent border-none text-slate-500 font-semibold text-xs"
+            >
+              Sitemap
             </button>
           </div>
         </div>

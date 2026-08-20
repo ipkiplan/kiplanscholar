@@ -196,11 +196,11 @@ export default function PrivacyPolicy() {
             Want to request data deletion or update your profile details?
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
-            Our legal compliance team at KIPLAN Law & Notary is ready to process any GDPR/privacy requests within 48 business hours.
+            Our team is ready to process any GDPR/privacy requests within 48 business hours.
           </p>
           <div className="pt-2">
             <a 
-              href="mailto:ipkiplan@gmail.com?subject=Privacy%20Data%20Request" 
+              href="mailto:kiplanscholar@gmail.com?subject=Privacy%20Data%20Request" 
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#102B5C] hover:bg-[#D7263D] dark:bg-sky-500 dark:hover:bg-[#D7263D] text-white text-xs font-bold rounded-xl shadow-md transition-colors duration-300 cursor-pointer"
             >
               Submit Privacy Request

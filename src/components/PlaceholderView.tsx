@@ -81,7 +81,7 @@ export default function PlaceholderView({
                 Under Curatorial Development
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                KIPLAN Law & Notary's academic relations desk is currently indexing authentic government registries and templates for this module.
+                KIPLANScholar's academic relations desk is currently indexing authentic government registries and templates for this module.
               </p>
             </div>
           </div>
@@ -139,11 +139,11 @@ export default function PlaceholderView({
           )}
         </div>
 
-        {/* Backed by legal firm disclaimer badge */}
+        {/* Neutral location badge — no developer/company attribution claim */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border border-slate-100 dark:border-slate-800/40 rounded-2xl text-xs text-slate-400">
           <div className="flex items-center gap-2">
             <Landmark className="h-4 w-4 text-slate-400" />
-            <span>Developer Support by <strong>KIPLAN Law & Notary</strong></span>
+            <span>KIPLANScholar</span>
           </div>
           <span>Kathmandu, Nepal</span>
         </div>

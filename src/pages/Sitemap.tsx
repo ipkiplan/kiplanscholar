@@ -40,8 +40,8 @@ export default function Sitemap({ setCurrentTab }: SitemapProps) {
     { name: "Women Applicants", tab: "women", icon: User, desc: "Exclusively compiled fellowships and leadership programs for female scholars from Nepal." },
     { name: "Entrepreneurs", tab: "entrepreneurs", icon: Briefcase, desc: "Incubators, business grants, and research funding for startup founders and creators." },
     { name: "Resources", tab: "resources", icon: BookOpen, desc: "Comprehensive step-by-step application guides, SOP/LOR templates, and helpful articles." },
-    { name: "About", tab: "about", icon: Info, desc: "Our core values, founding vision by KIPLAN Law & Notary, and strategic goals." },
-    { name: "Contact", tab: "contact", icon: Mail, desc: "Get in touch with KIPLAN's educational consultants or legal office in Kathmandu." },
+    { name: "About", tab: "about", icon: Info, desc: "Our core values, founding vision, and strategic goals." },
+    { name: "Contact", tab: "contact", icon: Mail, desc: "Get in touch with KIPLANScholar's educational consultants in Kathmandu." },
   ];
 
   const scholarshipResources = [
@@ -193,7 +193,6 @@ export default function Sitemap({ setCurrentTab }: SitemapProps) {
               <h3 className="font-bold text-sm text-[#102B5C] dark:text-white uppercase tracking-wider">Office</h3>
             </div>
             <div className="space-y-1.5 text-slate-600 dark:text-slate-300 text-sm font-medium leading-relaxed">
-              <p className="font-bold text-[#102B5C] dark:text-sky-300">KIPLAN Law & Notary</p>
               <p>Civil Trade Centre (CTC) Mall</p>
               <p>Sundhara</p>
               <p>Kathmandu 44600</p>
@@ -241,8 +240,6 @@ export default function Sitemap({ setCurrentTab }: SitemapProps) {
               <h3 className="font-bold text-sm text-[#102B5C] dark:text-white uppercase tracking-wider">Contact</h3>
             </div>
             <div className="space-y-3.5 text-slate-600 dark:text-slate-300 text-sm">
-              <p className="font-bold text-[#102B5C] dark:text-sky-300">KIPLAN Law & Notary</p>
-              
               <div className="space-y-1">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                   <Phone className="h-3 w-3 text-[#D7263D]" /> Phone:
@@ -258,7 +255,7 @@ export default function Sitemap({ setCurrentTab }: SitemapProps) {
                   <Mail className="h-3 w-3 text-[#102B5C]" /> Email:
                 </p>
                 <p className="font-semibold text-slate-700 dark:text-slate-200">
-                  <a href="mailto:ipkiplan@gmail.com" className="hover:text-[#D7263D] transition-colors">ipkiplan@gmail.com</a>
+                  <a href="mailto:kiplanscholar@gmail.com" className="hover:text-[#D7263D] transition-colors">kiplanscholar@gmail.com</a>
                 </p>
               </div>
             </div>
@@ -269,7 +266,7 @@ export default function Sitemap({ setCurrentTab }: SitemapProps) {
         {/* Elegant Footer Notice matching homepage style */}
         <div className="border-t border-slate-100 dark:border-slate-800/40 pt-8 text-center">
           <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-            © 2026 KIPLANScholar – Developed by KIPLAN Law & Notary.
+            © 2026 KIPLANScholar.
           </p>
         </div>
 

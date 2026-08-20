@@ -18,6 +18,8 @@
   --color-nepal-gold-light: #F1C40F;  /* accent hover */
   --color-nepal-gold-dark: #B8871F;   /* accent pressed */
 
+  --color-nepal-crimson: #DC143C;     /* restored — referenced throughout the app (icons, focus states, gradients) but missing from this theme since the palette was simplified */
+
   /* --- Semantic (not brand) colors — used sparingly, purpose-driven only --- */
   --color-urgent: #DC143C;            /* deadline tags, delete/destructive actions ONLY */
   --color-urgent-light: #F42E56;

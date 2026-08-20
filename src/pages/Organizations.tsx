@@ -177,8 +177,8 @@ export default function Organizations() {
   // visible feedback at all). The mailto: href is left intact below so
   // it still opens a mail client for anyone who has one.
   const handleRequestSupportClick = () => {
-    navigator.clipboard.writeText("ipkiplan@gmail.com").then(() => {
-      notifySuccess("Email copied: ipkiplan@gmail.com");
+    navigator.clipboard.writeText("kiplanscholar@gmail.com").then(() => {
+      notifySuccess("Email copied: kiplanscholar@gmail.com");
     });
   };
 

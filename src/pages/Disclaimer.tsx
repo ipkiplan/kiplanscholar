@@ -70,7 +70,7 @@ export default function Disclaimer() {
         {/* Main Content Statement */}
         <div className="bg-[#102B5C]/5 dark:bg-[#071126]/60 border border-slate-100 dark:border-slate-800/60 rounded-2xl p-6 text-slate-700 dark:text-slate-300 text-sm leading-relaxed font-medium space-y-3">
           <p>
-            Welcome to KIPLANScholar. KIPLANScholar is an independent scholarship directory and guide developed by <strong>KIPLAN Law & Notary</strong>. 
+            Welcome to KIPLANScholar. KIPLANScholar is an independent scholarship directory and guide designed to help students discover and prepare for global educational opportunities.
           </p>
           <p>
             Please note that we are not affiliated with the United Nations, foreign embassies, nor any specific funding agencies. All logos, trademarks, and university identifiers are property of their respective owners.
@@ -113,7 +113,7 @@ export default function Disclaimer() {
         <div className="bg-[#D7263D]/5 dark:bg-[#071126] border border-l-4 border-[#D7263D] dark:border-l-4 dark:border-l-[#D7263D] rounded-r-2xl p-6 text-slate-700 dark:text-slate-300 text-sm leading-relaxed space-y-3">
           <h3 className="font-bold text-[#102B5C] dark:text-white">Limitation of Liability</h3>
           <p className="text-xs sm:text-sm">
-            In no event shall KIPLAN Law & Notary, KIPLANScholar, its authors, developers, or content contributors be liable for any direct, indirect, incidental, special, or consequential damages (including, but not limited to, financial expenditures, visa costs, application fees, or lost opportunities) arising out of the use, or inability to use, this website or the information published here.
+            In no event shall KIPLANScholar, its authors, developers, or content contributors be liable for any direct, indirect, incidental, special, or consequential damages (including, but not limited to, financial expenditures, visa costs, application fees, or lost opportunities) arising out of the use, or inability to use, this website or the information published here.
           </p>
         </div>
 
@@ -127,14 +127,14 @@ export default function Disclaimer() {
             <span className="hidden sm:inline">•</span>
             <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-emerald-500" /> +977 1 5312040</span>
             <span className="hidden sm:inline">•</span>
-            <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-sky-400" /> ipkiplan@gmail.com</span>
+            <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-sky-400" /> kiplanscholar@gmail.com</span>
           </div>
         </div>
 
         {/* Elegant Footer Notice */}
         <div className="border-t border-slate-100 dark:border-slate-800/40 pt-8 text-center">
           <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-            © 2026 KIPLANScholar – Developed by KIPLAN Law & Notary.
+            © 2026 KIPLANScholar.
           </p>
         </div>
 
