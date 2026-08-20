@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Search, Award, Heart, Users, ArrowRight, ChevronRight, CheckCircle2, Star, Sparkles, BookOpen, ShieldCheck, HelpCircle } from "lucide-react";
+import { Search, Award, Heart, Users, ArrowRight, ChevronRight, CheckCircle2, Star, Sparkles, BookOpen, ShieldCheck, HelpCircle, Filter, LayoutDashboard, Send } from "lucide-react";
 import { motion } from "motion/react";
 import { FAQS, TESTIMONIALS } from "../data/scholarships";
 import EligibilityChecker from "../components/EligibilityChecker";
@@ -118,6 +118,15 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
     { value: `${fullyFundedCount}+`, label: "Fully Funded Opportunities", color: "from-emerald-500 to-teal-600" }
   ];
 
+  const journeySteps = [
+    { name: "Find", desc: "Discover opportunities", icon: Search },
+    { name: "Filter", desc: "Find what fits you", icon: Filter },
+    { name: "Resources", desc: "Prepare with the right tools", icon: BookOpen },
+    { name: "Workspace", desc: "Organize your application", icon: LayoutDashboard },
+    { name: "Apply", desc: "Take the next step", icon: Send },
+    { name: "Succeed", desc: "Reach your goal", icon: Award },
+  ];
+
   const categoriesList = [
     { id: "women", name: "Women in STEM", count: 8, desc: "Exclusive fellowships, mentorships & child-care grants.", icon: Heart, color: "text-rose-500 bg-rose-500/10" },
     { id: "entrepreneurs", name: "Entrepreneurs", count: 4, desc: "Equity-free seed grants, residencies & incubator hubs.", icon: Users, color: "text-amber-500 bg-amber-500/10" },
@@ -170,7 +179,7 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
               </p>
 
               {/* Dynamic Search Bar + Scholar Assistant CTA */}
-              <div className="flex flex-col sm:flex-row items-stretch gap-3 max-w-2xl mx-auto lg:mx-0">
+              <div className="flex flex-col gap-3 max-w-2xl mx-auto lg:mx-0">
                 <form onSubmit={handleSearchSubmit} className="flex-1">
                   <div className="relative flex items-center p-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(30,58,138,0.15)] focus-within:border-nepal-crimson focus-within:ring-4 focus-within:ring-nepal-crimson/10">
                     <div className="pl-3.5">
@@ -180,7 +189,7 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
                       type="text"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search e.g. Chevening, UK, Women STEM..."
+                      placeholder="Search scholarships..."
                       className="w-full pl-3 pr-4 py-4 bg-transparent text-base font-medium focus:outline-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
                     />
                     <button
@@ -262,6 +271,34 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
             </div>
 
           </div>
+        </div>
+      </section>
+
+      {/* 1b. How KIPLANScholar Helps You — compact journey overview */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-center text-xl sm:text-2xl font-black text-nepal-blue dark:text-white tracking-tight mb-8">
+          How KIPLANScholar Helps You
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-x divide-y divide-slate-200 dark:divide-slate-800">
+          {journeySteps.map((step) => {
+            const Icon = step.icon;
+            return (
+              <div
+                key={step.name}
+                className="flex flex-col items-center text-center gap-2 px-5 sm:px-6 py-4"
+              >
+                <div className="p-2.5 rounded-full bg-nepal-blue/5 dark:bg-white/5 text-nepal-blue dark:text-sky-400">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">
+                  {step.name}
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug max-w-[9rem]">
+                  {step.desc}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </section>
 

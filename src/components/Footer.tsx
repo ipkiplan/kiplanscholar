@@ -98,6 +98,20 @@ export default function Footer({ setCurrentTab }: FooterProps) {
     }
   };
 
+  // Distinct, genuine-sounding prepared messages per audience -- the
+  // Web Share/clipboard/toast mechanism below is completely unchanged;
+  // only which message it sends now varies by which button was clicked.
+  const SHARE_MESSAGES: Record<string, string> = {
+    Friends:
+      "Hey! I've been using KIPLANScholar to find scholarships and study opportunities — thought you might find it useful too.",
+    Family:
+      "Sharing this with the family — KIPLANScholar helps Nepali students find verified scholarships, visa guidance, and application resources.",
+    "Student Groups":
+      "For anyone in our student group looking for scholarships or study-abroad opportunities — KIPLANScholar is a free, verified resource worth checking out.",
+    "Your Community":
+      "Sharing a useful resource with our community — KIPLANScholar helps students discover scholarships and navigate the international education process.",
+  };
+
   // Placeholder share behavior, per requirement: uses the native share
   // sheet where the browser supports it (mobile Safari/Chrome, etc.);
   // falls back to copying a share message to the clipboard elsewhere.
@@ -105,7 +119,7 @@ export default function Footer({ setCurrentTab }: FooterProps) {
   // so the shared link is always correct for wherever this is deployed.
   const handleShare = async (audience: string) => {
     const shareUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const shareText = `Check out KIPLANScholar — free, verified scholarships and opportunities for Nepali students! ${shareUrl}`;
+    const shareText = `${SHARE_MESSAGES[audience] ?? SHARE_MESSAGES.Friends} ${shareUrl}`;
 
     if (typeof navigator !== "undefined" && "share" in navigator) {
       try {
@@ -272,7 +286,7 @@ export default function Footer({ setCurrentTab }: FooterProps) {
               Scholarship Alerts
             </h3>
             <p className="text-sm text-slate-400 mb-4">
-              Get the latest application deadlines, visa guides, and new funding announcements sent to your inbox.
+              Get scholarship deadline alerts and discover new scholarship opportunities for Nepali students.
             </p>
             {subscribed ? (
               <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-3">
@@ -281,7 +295,10 @@ export default function Footer({ setCurrentTab }: FooterProps) {
                   <span>{alreadySubscribed ? "You're already subscribed to Scholarship Alerts." : "Thank you for your interest in KIPLANScholar!"}</span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Help more students discover global educational opportunities by sharing KIPLANScholar.
+                  Thank you for staying connected. Help another student discover scholarships and global education resources through KIPLANScholar.
+                </p>
+                <p className="text-[11px] font-semibold text-slate-300">
+                  Help another student discover KIPLANScholar
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
