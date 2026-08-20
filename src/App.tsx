@@ -6,6 +6,9 @@ import Footer from "./components/Footer";
 // so this is the one page component genuinely required for the very first
 // render, with no lazy/Suspense delay.
 import Home from "./pages/Home";
+// Unsubscribe is also a static, eager import: it must render immediately
+// for the /unsubscribe path, the same reasoning as Home.
+import Unsubscribe from "./pages/Unsubscribe";
 // The remaining 28 page components are route-level code-split via
 // React.lazy — each becomes its own chunk, fetched only when its
 // currentTab value is actually reached, instead of all being bundled
@@ -55,9 +58,45 @@ function RouteLoadingFallback() {
   );
 }
 
+// Four fixed font-size levels, applied as a root-level percentage via
+// document.documentElement.style.fontSize. Since the vast majority of
+// this app's text uses Tailwind's rem-based text-* classes, they scale
+// automatically with this root value. Levels: 87.5% (min) / 100%
+// (default) / 112.5% / 125% (max).
+const FONT_SIZE_LEVELS = [87.5, 100, 112.5, 125];
+const DEFAULT_FONT_SIZE_LEVEL_INDEX = 1; // 100%
+const FONT_SIZE_STORAGE_KEY = "kiplan_font_size_level";
+
+function readStoredFontSizeLevelIndex(): number {
+  if (typeof window === "undefined") return DEFAULT_FONT_SIZE_LEVEL_INDEX;
+  try {
+    const raw = window.localStorage.getItem(FONT_SIZE_STORAGE_KEY);
+    if (raw === null) return DEFAULT_FONT_SIZE_LEVEL_INDEX;
+    const parsed = Number(raw);
+    // Falls back safely to the default on anything invalid/out of range,
+    // rather than trusting stored data blindly.
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed >= FONT_SIZE_LEVELS.length) {
+      return DEFAULT_FONT_SIZE_LEVEL_INDEX;
+    }
+    return parsed;
+  } catch {
+    return DEFAULT_FONT_SIZE_LEVEL_INDEX;
+  }
+}
+
 export default function App() {
+  // Minimal, self-contained check for the one real URL-path route this
+  // app has: /unsubscribe?token=... . Everything else in this app is
+  // currentTab state, not URL-based routing -- this is a deliberately
+  // narrow addition, not a switch to a routing library. Computed once
+  // via useState's lazy initializer so it participates correctly in the
+  // normal hooks order (no conditional hook calls).
+  const [isUnsubscribePage] = useState<boolean>(
+    () => typeof window !== "undefined" && window.location.pathname === "/unsubscribe"
+  );
   const [currentTab, setCurrentTab] = useState<string>("home");
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [fontSizeLevelIndex, setFontSizeLevelIndex] = useState<number>(readStoredFontSizeLevelIndex);
   const [selectedScholarshipId, setSelectedScholarshipId] = useState<string | null>(null);
   const [placeholderMeta, setPlaceholderMeta] = useState<{
     title: string;
@@ -75,6 +114,31 @@ export default function App() {
       document.documentElement.classList.remove("dark");
     }
   }, [isDarkMode]);
+
+  // Apply the font-size level to the document root and persist it.
+  // Entirely independent of the dark-mode effect above -- different DOM
+  // property (style.fontSize vs. classList), different localStorage key,
+  // no shared state between the two features.
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${FONT_SIZE_LEVELS[fontSizeLevelIndex]}%`;
+    try {
+      window.localStorage.setItem(FONT_SIZE_STORAGE_KEY, String(fontSizeLevelIndex));
+    } catch {
+      // Storage unavailable (private browsing, quota, etc.) -- the
+      // in-session size still applies via the line above; only
+      // persistence across a refresh is lost, not the feature itself.
+    }
+  }, [fontSizeLevelIndex]);
+
+  const decreaseFontSize = () => {
+    setFontSizeLevelIndex((i) => Math.max(0, i - 1));
+  };
+  const increaseFontSize = () => {
+    setFontSizeLevelIndex((i) => Math.min(FONT_SIZE_LEVELS.length - 1, i + 1));
+  };
+  const resetFontSize = () => {
+    setFontSizeLevelIndex(DEFAULT_FONT_SIZE_LEVEL_INDEX);
+  };
 
   // Navigate to scholarship with details pre-loaded
   const handleSelectScholarship = (id: string) => {
@@ -104,8 +168,12 @@ export default function App() {
     }, 100);
   };
 
+  if (isUnsubscribePage) {
+    return <Unsubscribe />;
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-nepal-dark text-slate-800 dark:text-slate-100 transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-nepal-dark-deep text-slate-800 dark:text-slate-100 transition-colors duration-300">
 
       {/* Toast notifications — follows the site's dark/light mode */}
       <Toaster
@@ -121,6 +189,10 @@ export default function App() {
         setCurrentTab={setCurrentTab}
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
+        fontSizeLevelIndex={fontSizeLevelIndex}
+        onDecreaseFontSize={decreaseFontSize}
+        onResetFontSize={resetFontSize}
+        onIncreaseFontSize={increaseFontSize}
         setPlaceholderMeta={setPlaceholderMeta}
       />
 

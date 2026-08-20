@@ -1,6 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
+/* Tailwind v4 requires this explicit declaration for dark: to respond to
+   a .dark class on an ancestor (set by the in-app theme toggle in
+   App.tsx). Without it, dark: falls back to the prefers-color-scheme
+   media query alone -- meaning the toggle changes the DOM class but no
+   dark: style ever responds to it. This one line is the fix. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* Typography — Outfit for headings (distinctive, premium, geometric),
      Inter for body/UI (highly legible). Poppins removed — it was never
@@ -27,7 +34,11 @@
   --color-warning: #D97706;           /* warning states */
 
   --color-nepal-slate: #F8F9FC;       /* light surface */
-  --color-nepal-dark: #071126;        /* dark surface */
+  --color-nepal-dark: #071126;        /* dark surface — cards/panels in dark mode */
+  --color-nepal-dark-deep: #050B1A;   /* dark mode PAGE background only — deliberately
+                                          a step darker than nepal-dark, so cards/panels
+                                          (which stay at nepal-dark) remain visually
+                                          distinct from the page behind them. */
 
   --shadow-premium: 0 10px 30px -10px rgba(10, 28, 64, 0.08);
   --shadow-premium-hover: 0 20px 40px -15px rgba(30, 58, 138, 0.16);

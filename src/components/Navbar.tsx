@@ -29,7 +29,79 @@ interface NavbarProps {
   setCurrentTab: (tab: string) => void;
   isDarkMode: boolean;
   setIsDarkMode: (dark: boolean) => void;
+  fontSizeLevelIndex: number;
+  onDecreaseFontSize: () => void;
+  onResetFontSize: () => void;
+  onIncreaseFontSize: () => void;
   setPlaceholderMeta: (meta: any) => void;
+}
+
+const FONT_SIZE_LEVEL_COUNT = 4;
+const FONT_SIZE_DEFAULT_INDEX = 1;
+
+/**
+ * Accessible A− / A / A+ text-size controls. Defined once here and
+ * reused in both the desktop navbar and the mobile drawer, rather than
+ * duplicating the JSX or introducing a separate component file for
+ * three buttons. Purely presentational -- the actual font-size state,
+ * persistence, and application to the document root all live in
+ * App.tsx, completely independent of the dark/light theme mechanism.
+ */
+function FontSizeControls({
+  fontSizeLevelIndex,
+  onDecreaseFontSize,
+  onResetFontSize,
+  onIncreaseFontSize,
+  className,
+}: {
+  fontSizeLevelIndex: number;
+  onDecreaseFontSize: () => void;
+  onResetFontSize: () => void;
+  onIncreaseFontSize: () => void;
+  className?: string;
+}) {
+  const atMin = fontSizeLevelIndex <= 0;
+  const atMax = fontSizeLevelIndex >= FONT_SIZE_LEVEL_COUNT - 1;
+  const isDefault = fontSizeLevelIndex === FONT_SIZE_DEFAULT_INDEX;
+
+  return (
+    <div className={`flex items-center rounded-xl border border-slate-200/40 dark:border-slate-800/40 overflow-hidden ${className ?? ""}`}>
+      <button
+        type="button"
+        onClick={onDecreaseFontSize}
+        disabled={atMin}
+        aria-label="Decrease text size"
+        title="Decrease text size"
+        className="px-2 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-nepal-blue dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+      >
+        A&minus;
+      </button>
+      <button
+        type="button"
+        onClick={onResetFontSize}
+        aria-label="Reset text size to default"
+        aria-pressed={isDefault}
+        title="Reset text size"
+        className={`px-2 py-2.5 text-xs font-bold border-x border-slate-200/40 dark:border-slate-800/40 transition-all cursor-pointer ${
+          isDefault
+            ? "bg-slate-100 dark:bg-slate-800 text-nepal-blue dark:text-white"
+            : "text-slate-600 dark:text-slate-300 hover:text-nepal-blue dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800"
+        }`}
+      >
+        A
+      </button>
+      <button
+        type="button"
+        onClick={onIncreaseFontSize}
+        disabled={atMax}
+        aria-label="Increase text size"
+        title="Increase text size"
+        className="px-2 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-nepal-blue dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+      >
+        A+
+      </button>
+    </div>
+  );
 }
 
 export default function Navbar({ 
@@ -37,6 +109,10 @@ export default function Navbar({
   setCurrentTab, 
   isDarkMode, 
   setIsDarkMode,
+  fontSizeLevelIndex,
+  onDecreaseFontSize,
+  onResetFontSize,
+  onIncreaseFontSize,
   setPlaceholderMeta 
 }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -655,6 +731,15 @@ export default function Navbar({
 
           {/* Theme, Actions & Identity Portal on Far Right */}
           <div className="flex items-center gap-3">
+            {/* Font Size Controls — Desktop */}
+            <FontSizeControls
+              fontSizeLevelIndex={fontSizeLevelIndex}
+              onDecreaseFontSize={onDecreaseFontSize}
+              onResetFontSize={onResetFontSize}
+              onIncreaseFontSize={onIncreaseFontSize}
+              className="hidden lg:flex"
+            />
+
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
@@ -837,6 +922,17 @@ export default function Navbar({
                     <span>Login / Register Portal</span>
                   </button>
                 )}
+              </div>
+
+              {/* Font Size Controls — Mobile */}
+              <div className="pt-4 px-4 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">Text Size</span>
+                <FontSizeControls
+                  fontSizeLevelIndex={fontSizeLevelIndex}
+                  onDecreaseFontSize={onDecreaseFontSize}
+                  onResetFontSize={onResetFontSize}
+                  onIncreaseFontSize={onIncreaseFontSize}
+                />
               </div>
 
             </div>
