@@ -26,6 +26,7 @@ const Sitemap = React.lazy(() => import("./pages/Sitemap"));
 const Disclaimer = React.lazy(() => import("./pages/Disclaimer"));
 const Faq = React.lazy(() => import("./pages/Faq"));
 const Eligibility = React.lazy(() => import("./pages/Eligibility"));
+const ShareExperience = React.lazy(() => import("./pages/ShareExperience"));
 const Organizations = React.lazy(() => import("./pages/Organizations"));
 const Login = React.lazy(() => import("./pages/Login"));
 const Register = React.lazy(() => import("./pages/Register"));
@@ -225,6 +226,12 @@ export default function App() {
             {currentTab === "eligibility" && (
               <ProtectedRoute setCurrentTab={setCurrentTab}>
                 <Eligibility setCurrentTab={setCurrentTab} />
+              </ProtectedRoute>
+            )}
+
+            {currentTab === "share-experience" && (
+              <ProtectedRoute setCurrentTab={setCurrentTab}>
+                <ShareExperience setCurrentTab={setCurrentTab} />
               </ProtectedRoute>
             )}
 

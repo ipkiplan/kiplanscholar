@@ -8,7 +8,8 @@ import {
   Cookie, 
   ExternalLink, 
   UserCheck, 
-  GraduationCap 
+  GraduationCap,
+  Heart
 } from "lucide-react";
 import { motion } from "motion/react";
 
@@ -133,6 +134,17 @@ export default function PrivacyPolicy() {
         <div className="p-4 bg-[#102B5C]/5 dark:bg-[#102B5C]/10 border-l-4 border-[#102B5C] rounded-r-xl text-slate-700 dark:text-slate-300 text-sm italic">
           "KIPLANScholar exists to reduce information barriers and empower Nepali students through access to authentic educational opportunities around the world."
         </div>
+      )
+    },
+    {
+      id: "student-experience-submissions",
+      title: "9. Student Experience Submissions",
+      icon: Heart,
+      color: "text-[#D7263D] bg-[#D7263D]/5 dark:text-[#F42E56] dark:bg-[#F42E56]/10",
+      content: (
+        <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
+          If you choose to submit a personal scholarship or application experience through our Student Experiences feature, it is entirely voluntary. Submissions are reviewed by KIPLANScholar before publication and are never published automatically. We aim to review submissions within approximately 24 hours, though publication is not guaranteed. Publication also requires your explicit consent, given at the time you submit. If approved and published, your name and submitted experience may be publicly visible on this website. You may request removal of a published experience at any time by contacting our support team.
+        </p>
       )
     }
   ];

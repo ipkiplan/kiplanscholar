@@ -6,6 +6,7 @@ import EligibilityChecker from "../components/EligibilityChecker";
 import ScholarshipCard from "../components/ScholarshipCard";
 import { notifySuccess, notifyError, notifyInfo } from "../lib/notifications";
 import { getFeaturedScholarships, getScholarships, Scholarship } from "../lib/scholarships";
+import { fetchApprovedExperiences, StudentExperience } from "../lib/experiences";
 
 interface HomeProps {
   setCurrentTab: (tab: string) => void;
@@ -15,6 +16,25 @@ interface HomeProps {
 export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFaq, setActiveFaq] = useState<string | null>(null);
+  // Approved, published student experiences fetched from Supabase --
+  // combined with the existing static TESTIMONIALS at render time, so
+  // new approved submissions appear automatically without ever editing
+  // src/data/scholarships.ts. Starts empty; a fetch failure or empty
+  // result simply means only the static testimonials show, same as
+  // before this feature existed -- never a broken page.
+  const [approvedExperiences, setApprovedExperiences] = useState<StudentExperience[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchApprovedExperiences().then(({ data }) => {
+      if (!cancelled && data) {
+        setApprovedExperiences(data);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Manage saved scholarships with persistence
   const [savedIds, setSavedIds] = useState<string[]>(() => {
@@ -459,14 +479,14 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-3 mb-12">
             <h2 className="text-3xl font-black text-nepal-blue dark:text-white">
-              Sourced From Successful Alumni
+              Student Experiences
             </h2>
             <p className="text-slate-600 dark:text-slate-400 max-w-xl mx-auto text-sm">
-              Read how fellow Nepali students secured fully funded scholarships in the UK, USA, and Europe with KIPLANScholar guidance.
+              Explore experiences and perspectives from students using KIPLANScholar to navigate scholarships and global education opportunities.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {TESTIMONIALS.map((test) => (
               <div key={test.id} className="bg-white dark:bg-nepal-dark rounded-2xl p-6 border border-slate-200/40 dark:border-slate-800/40 shadow-sm space-y-4">
                 <div className="flex items-center gap-1 text-nepal-gold">
@@ -498,6 +518,67 @@ export default function Home({ setCurrentTab, onSelectScholarship }: HomeProps) 
                 </div>
               </div>
             ))}
+
+            {/* Approved, database-backed experiences -- rendered with the
+                same card treatment as the static testimonials above, so
+                a visitor can't tell which is which. Always empty until
+                KIPLANScholar approves a real submission. No star rating
+                is shown here (unlike the static testimonials above):
+                student_experiences has no rating field, and users never
+                submitted a rating, so showing stars would be fabricated. */}
+            {approvedExperiences.map((exp) => (
+              <div key={exp.id} className="bg-white dark:bg-nepal-dark rounded-2xl p-6 border border-slate-200/40 dark:border-slate-800/40 shadow-sm space-y-4">
+                <p className="text-sm text-slate-600 dark:text-slate-300 italic leading-relaxed">
+                  "{exp.experience_text}"
+                </p>
+                <div className="flex items-center gap-3 pt-2">
+                  {exp.avatar_url ? (
+                    <img
+                      src={exp.avatar_url}
+                      alt={exp.name}
+                      className="h-11 w-11 rounded-full object-cover border-2 border-nepal-crimson"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="h-11 w-11 rounded-full bg-nepal-blue/10 dark:bg-white/10 flex items-center justify-center text-nepal-blue dark:text-white font-bold text-sm">
+                      {exp.name.charAt(0)}
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="font-extrabold text-sm text-slate-800 dark:text-white">
+                      {exp.name}
+                    </h4>
+                    <p className="text-[11px] text-nepal-crimson dark:text-nepal-crimson-light font-bold">
+                      {exp.role_context}
+                    </p>
+                    <p className="text-[10px] text-slate-400">
+                      {exp.location}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Permanent "Share Your Experience" card -- always the final
+                item. Deliberately styled as an invitation to contribute,
+                not as another testimonial: a dashed border, centered
+                content, and a Heart icon instead of star ratings or a
+                photo, so it reads as intentional even if it ends up
+                alone on a trailing row as the collection grows. */}
+            <button
+              onClick={() => setCurrentTab("share-experience")}
+              className="text-left bg-transparent rounded-2xl p-6 border-2 border-dashed border-nepal-crimson/30 dark:border-nepal-crimson-light/30 hover:border-nepal-crimson dark:hover:border-nepal-crimson-light transition-colors cursor-pointer flex flex-col items-center justify-center text-center gap-3 min-h-[220px]"
+            >
+              <div className="p-3 rounded-full bg-nepal-crimson/5 dark:bg-nepal-crimson-light/10 text-nepal-crimson dark:text-nepal-crimson-light">
+                <Heart className="h-6 w-6" />
+              </div>
+              <h4 className="font-extrabold text-sm text-slate-800 dark:text-white">
+                Share Your Experience
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Your real story can help another Nepali student find their way.
+              </p>
+            </button>
           </div>
         </div>
       </section>
