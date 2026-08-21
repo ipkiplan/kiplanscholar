@@ -29,6 +29,33 @@ import { EnrichedOpportunity } from "../components/results/types";
  * remain static/derived defaults — there is nothing to map them from
  * without adding a new column, which is out of scope here.
  */
+
+/**
+ * Normalizes the live Supabase `degree_level` vocabulary into the
+ * terminology the existing Eligibility scoring function's substring
+ * checks (.includes("master"), .includes("bachelor"), etc.) already
+ * expect. Explicit lookup table, not a fuzzy transformation -- an
+ * unrecognized value is passed through unchanged rather than guessed
+ * at, so nothing is silently miscategorized.
+ *
+ * Grounded in real eligibility-text evidence, not assumption: sampled
+ * "Graduate" scholarships each require an already-completed Bachelor's
+ * degree as their entry prerequisite (i.e. post-bachelor's, Master's-
+ * level study) -- confirmed directly against live data before this
+ * mapping was written.
+ */
+const DEGREE_LEVEL_NORMALIZATION: Record<string, string> = {
+  "Graduate": "Master's",
+  "Undergraduate": "Bachelor's",
+  "PhD": "PhD",
+  "Research": "Research",
+  "Any": "Any",
+};
+
+function normalizeDegreeLevel(rawDegreeLevel: string): string {
+  return DEGREE_LEVEL_NORMALIZATION[rawDegreeLevel] ?? rawDegreeLevel;
+}
+
 export function mapSupabaseScholarship(s: Scholarship): EnrichedOpportunity {
   // Deadline is nullable in the locked schema (e.g. rolling-admission
   // scholarships). Guard against null before doing date arithmetic —
@@ -219,7 +246,7 @@ export function mapSupabaseScholarship(s: Scholarship): EnrichedOpportunity {
     // since real data's educationLevel never varied. Now derived from
     // the real degree_level column, already used correctly elsewhere
     // in this function (see `level`/`academicLevel` above).
-    educationLevel: s.degree_level,
+    educationLevel: normalizeDegreeLevel(s.degree_level),
 
     funding: isFullyFunded ? "Fully Funded" : "Partially Funded",
 

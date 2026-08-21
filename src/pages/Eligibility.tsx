@@ -22,7 +22,8 @@ import {
   Heart
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { ALL_OPPORTUNITIES } from "../components/results/mockOpportunities";
+import { getScholarships } from "../lib/scholarships";
+import { mapSupabaseScholarship } from "../utils/mapScholarship";
 import { EnrichedOpportunity } from "../components/results/types";
 
 // User profile interface
@@ -112,14 +113,52 @@ export default function Eligibility({ setCurrentTab }: EligibilityProps) {
     localStorage.setItem(storageKey, JSON.stringify(profile));
   }, [profile, storageKey]);
 
+  // Live scholarship data -- the same active=true source and mapping
+  // function the Opportunities page uses (getScholarships +
+  // mapSupabaseScholarship), replacing the previous static/mock
+  // ALL_OPPORTUNITIES list. Fetched once on mount so it's typically
+  // already available by the time the user finishes the profile form;
+  // handleCalculate below guards against it still being loading or
+  // having failed, rather than silently scoring against an empty list.
+  const [liveOpportunities, setLiveOpportunities] = useState<EnrichedOpportunity[]>([]);
+  const [opportunitiesLoading, setOpportunitiesLoading] = useState(true);
+  const [opportunitiesError, setOpportunitiesError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setOpportunitiesLoading(true);
+    setOpportunitiesError(null);
+
+    getScholarships().then(({ data, error }) => {
+      if (cancelled) return;
+      if (error || !data) {
+        setOpportunitiesError(error || "Unable to load scholarship data.");
+        setOpportunitiesLoading(false);
+        return;
+      }
+      setLiveOpportunities(data.map(mapSupabaseScholarship));
+      setOpportunitiesLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Run dynamic match analysis
   const handleCalculate = () => {
+    // Guard against calculating against an empty list while the live
+    // fetch is still in flight or has failed -- the loading/error UI
+    // states (rendered below) are what the user sees in these cases,
+    // not a silent "zero matches" result.
+    if (opportunitiesLoading || opportunitiesError) return;
+
     setCalculating(true);
     
     // Simulate calculating animation
     setTimeout(() => {
       // Calculate individual opportunity scores
-      const matchedOpps = ALL_OPPORTUNITIES.map(opp => {
+      const matchedOpps = liveOpportunities.map(opp => {
         let score = 70; // Base score
 
         // 1. Level Match
@@ -260,6 +299,7 @@ export default function Eligibility({ setCurrentTab }: EligibilityProps) {
       // Overall Score Calculation
       const highlyEligibleCount = matchedOpps.filter(o => o.status === "highly_eligible").length;
       const eligibleCount = matchedOpps.filter(o => o.status === "eligible").length;
+      const borderlineCount = matchedOpps.filter(o => o.status === "borderline").length;
       let overallScore = Math.round((profile.gpa / 4 * 40) + ((profile.ielts - 4.5) / 4.5 * 30) + (profile.hasSOP ? 10 : 0) + (profile.hasLOR ? 10 : 0) + (profile.hasResearch ? 10 : 0));
       overallScore = Math.min(98, Math.max(30, overallScore));
 
@@ -276,7 +316,7 @@ export default function Eligibility({ setCurrentTab }: EligibilityProps) {
 
       // Auto-update counselor chat introduction
       setAiChat([
-        { role: "assistant", text: `Profile analyzed successfully! I calculated an overall Match Score of **${overallScore}%**. You are **Highly Eligible** for ${highlyEligibleCount} programs and **Eligible** for ${eligibleCount} other options.\n\nYour primary strength is your ${profile.gpa >= 3.5 ? "stellar GPA" : "academic determination"} paired with your ${profile.ielts >= 7.0 ? "high English test proficiency" : "study objectives"}.\n\nHow can I help you optimize your application? You can ask me how to draft your SOP, how to contact professors, or how to set up a blocked bank account in Kathmandu.` }
+        { role: "assistant", text: `Profile analyzed successfully! I calculated an overall Match Score of **${overallScore}%**. You are **Highly Eligible** for ${highlyEligibleCount} programs, **Eligible** for ${eligibleCount} other options, and **Borderline** for ${borderlineCount} more.\n\nYour primary strength is your ${profile.gpa >= 3.5 ? "stellar GPA" : "academic determination"} paired with your ${profile.ielts >= 7.0 ? "high English test proficiency" : "study objectives"}.\n\nHow can I help you optimize your application? You can ask me how to draft your SOP, how to contact professors, or how to set up a blocked bank account in Kathmandu.` }
       ]);
     }, 1500);
   };
@@ -577,13 +617,18 @@ Feel free to ask more specific questions about recommendations, visa processing,
                 {/* Calculate Trigger */}
                 <button
                   onClick={handleCalculate}
-                  disabled={calculating}
+                  disabled={calculating || opportunitiesLoading || !!opportunitiesError}
                   className="w-full py-4 bg-gradient-to-r from-nepal-crimson to-nepal-blue hover:opacity-95 text-white rounded-2xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {calculating ? (
                     <>
                       <RefreshCw className="h-5 w-5 animate-spin" />
                       <span>Running Smart Alignment Model...</span>
+                    </>
+                  ) : opportunitiesLoading ? (
+                    <>
+                      <RefreshCw className="h-5 w-5 animate-spin" />
+                      <span>Loading Live Scholarship Data...</span>
                     </>
                   ) : (
                     <>
@@ -592,6 +637,12 @@ Feel free to ask more specific questions about recommendations, visa processing,
                     </>
                   )}
                 </button>
+                {opportunitiesError && (
+                  <div className="flex items-center gap-2 text-xs text-red-500 -mt-3">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>We couldn't load live scholarship data right now. Please refresh and try again.</span>
+                  </div>
+                )}
               </motion.div>
             ) : (
               <motion.div
