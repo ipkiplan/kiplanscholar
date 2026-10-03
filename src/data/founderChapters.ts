@@ -18,13 +18,13 @@
  * hashed by Vite at build time, not runtime string paths.
  */
 
-import earlyLife from "../assets/images/01_EarlyLife.jpg";
+import earlyLife from "../assets/images/01_EarlyLife-optimized.jpg";
 import umnCareer from "../assets/images/04_UMN_Career.jpeg";
-import endeavourAward from "../assets/images/08_Endeavour_Award.jpg";
-import uniCanverra from "../assets/images/05_uni_canverra.jfif";
+import endeavourAward from "../assets/images/08_Endeavour_Award-optimized.jpg";
+import uniCanverra from "../assets/images/05_uni_canverra-optimized.jpg";
 import convDavies from "../assets/images/07_Conv1_Davies.jpeg";
 import convMonikaKennedy from "../assets/images/08_Con2_MonikaKennedy.jpeg";
-import returnToNepal from "../assets/images/10_Return.jpg";
+import returnToNepal from "../assets/images/10_Return-optimized.jpg";
 import aiImage from "../assets/images/13_AIImage.webp";
 
 export interface ChapterImage {
